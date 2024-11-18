@@ -3,9 +3,11 @@ import Message from "../models/message.js";
 
 export const sendMessage = async (req, res) => {
   try {
-    const { ean, productName, sava, toPack, sellerId } = req.body;
+    const { ean, productName, sava, toPack, sellerId, rez, buyer } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id.toString();
+
+    console.log(ean, productName, sava, toPack, sellerId, rez, buyer);
 
     let conversation = await Conversation.findOne({
       participants: { $all: [senderId, receiverId] },
@@ -26,6 +28,8 @@ export const sendMessage = async (req, res) => {
       sava,
       toPack,
       sellerId,
+      rez,
+      buyer,
     });
 
     if (newMessage) {

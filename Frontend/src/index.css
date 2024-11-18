@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .checkbox-label:has(input:checked) {
+    @apply bg-amber-400 text-black p-2;
+  }
+}

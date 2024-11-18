@@ -28,8 +28,16 @@ const messageSchema = new mongoose.Schema(
       type: Boolean,
       required: true,
     },
+    rez: {
+      type: Boolean,
+      required: true,
+    },
     sellerId: {
-      type: Number,
+      type: String,
+      required: true,
+    },
+    buyer: {
+      type: String,
       required: true,
     },
   },
