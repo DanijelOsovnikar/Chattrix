@@ -23,11 +23,7 @@ const Converastion = ({ conversation }) => {
         <div className={`avatar ${isOnline ? "online" : ""}`}>
           <div className="w-12 rounded-full">
             <img
-              src={
-                authUser.fullName !== "Magacin"
-                  ? "/vite.svg"
-                  : "src/assets/react.svg"
-              }
+              src={authUser.fullName !== "Magacin" ? "/vite.svg" : "/react.svg"}
               alt="profile icon"
             />
           </div>
