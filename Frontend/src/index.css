@@ -7,3 +7,71 @@
     @apply bg-amber-400 text-black p-2;
   }
 }
+body {
+  scrollbar-width: none;
+}
+
+#avatar {
+  width: 100%;
+  height: unset;
+}
+
+@media screen and (max-width: 700px) {
+  .homeWrapper {
+    flex-direction: column;
+    overflow: auto;
+    padding: unset;
+  }
+
+  .myBtn {
+    display: block;
+    bottom: 0;
+  }
+
+  .searchBTN {
+    position: absolute;
+    right: 70px;
+    top: 26px;
+  }
+
+  .wrapper {
+    position: relative;
+  }
+
+  .convCLass {
+    overflow: auto;
+    max-height: 144px;
+    scrollbar-width: none;
+  }
+
+  .sidebar {
+    border-right: none;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .homeWrapper {
+    min-width: 850px;
+  }
+
+  .sidebar {
+    min-width: 280px;
+  }
+
+  .messContainer {
+    min-width: 700px;
+  }
+}
+@media screen and (min-width: 1440px) {
+  .homeWrapper {
+    min-width: 950px;
+  }
+
+  .sidebar {
+    min-width: 400px;
+  }
+
+  .messContainer {
+    min-width: 950px;
+  }
+}

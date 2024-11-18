@@ -1,19 +1,50 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useConversation from "../../store/useConversation";
 import { useAuthContext } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const Message = ({ message }) => {
   const { authUser } = useAuthContext();
   const { selectedConversation } = useConversation();
   const iframeRef = useRef(null);
+  const [color, setColor] = useState(false);
 
   const fromMe = message.senderId === authUser._id;
   const chatClassName = fromMe ? "chat-end" : "chat-start";
   // const profilePic = fromMe ? authUser.img : selectedConversation?.img;
-  const bgColor = fromMe ? "bg-blue-500" : "";
+  const bgColor = fromMe
+    ? "bg-blue-500"
+    : message.opened || color
+    ? "bg-pink-500"
+    : "";
   const formatedTime = extractTime(message.createdAt);
 
-  const handlePrint = () => {
+  useEffect(() => {
+    async function test() {
+      try {
+        const res = await fetch(
+          `/api/messages/${selectedConversation._id}/${message._id}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        const data = await res.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        toast.error(error.message);
+      }
+    }
+    if (color) {
+      test();
+    }
+  }, [color]);
+
+  const handlePrint = async () => {
     const iframe = iframeRef.current;
 
     // Write content to the iframe
@@ -87,6 +118,7 @@ const Message = ({ message }) => {
     // Trigger print
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
+    setColor(true);
   };
 
   return (
@@ -97,8 +129,8 @@ const Message = ({ message }) => {
       }}
     >
       <div className="chat-image avatar">
-        <div className="w-10 rounded-full">
-          <img src="" alt="icon photo" />
+        <div className="w-10 rounded-full ">
+          <img id="avatar" src="/infos_404.png" alt="icon photo" />
         </div>
       </div>
       <div className={`chat-bubble text-white ${bgColor} pb-2`}>

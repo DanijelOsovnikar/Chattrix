@@ -1,9 +1,11 @@
 import Conversation from "../models/conversation.js";
 import Message from "../models/message.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
 export const sendMessage = async (req, res) => {
   try {
-    const { ean, productName, sava, toPack, sellerId, rez, buyer } = req.body;
+    const { ean, productName, sava, toPack, sellerId, rez, buyer, opened } =
+      req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id.toString();
 
@@ -30,20 +32,39 @@ export const sendMessage = async (req, res) => {
       sellerId,
       rez,
       buyer,
+      opened,
     });
 
     if (newMessage) {
       conversation.messages.push(newMessage._id);
     }
 
-    //Socket.io func
-
     await Promise.all([conversation.save(), newMessage.save()]);
+
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
 
     res.status(201).json(newMessage);
   } catch (error) {
     console.log("Error in sendMessage controller", error);
     res.status(500).json({ error: "Internal server error!" });
+  }
+};
+
+export const checkedMessage = async (req, res) => {
+  try {
+    const { messId: messageId } = req.params;
+
+    let message = await Message.findOneAndUpdate(
+      { _id: messageId },
+      { opened: true }
+    );
+
+    res.status(201).json(message);
+  } catch (error) {
+    console.log(error);
   }
 };
 

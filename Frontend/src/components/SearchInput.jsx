@@ -27,7 +27,10 @@ const SearchInput = () => {
     }
   };
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2">
+    <form
+      onSubmit={handleSubmit}
+      className="flex items-center justify-between gap-2"
+    >
       <input
         type="text"
         value={search}
@@ -37,7 +40,7 @@ const SearchInput = () => {
       />
       <button
         type="submit"
-        className="btn btn-circle bg-white text-black hover:text-white"
+        className="btn  btn-circle bg-white text-black hover:text-white"
       >
         <CiSearch className="size-8" />
       </button>

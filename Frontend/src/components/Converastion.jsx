@@ -1,12 +1,16 @@
 import React from "react";
 import useConversations from "../store/useConversation";
 import { useAuthContext } from "../context/AuthContext";
+import { useSocketContext } from "../context/SocketContext";
 
 const Converastion = ({ conversation }) => {
   const { selectedConversation, setSelectedConversation } = useConversations();
   const isSelected = selectedConversation?._id === conversation._id;
 
   const { authUser } = useAuthContext();
+  const { onlineUsers } = useSocketContext();
+
+  const isOnline = onlineUsers.includes(conversation._id);
 
   return (
     <>
@@ -16,12 +20,12 @@ const Converastion = ({ conversation }) => {
         }`}
         onClick={() => setSelectedConversation(conversation)}
       >
-        <div className="avatar">
+        <div className={`avatar ${isOnline ? "online" : ""}`}>
           <div className="w-12 rounded-full">
             <img
               src={
                 authUser.fullName !== "Magacin"
-                  ? "public/vite.svg"
+                  ? "/vite.svg"
                   : "src/assets/react.svg"
               }
               alt="profile icon"

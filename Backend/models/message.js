@@ -40,6 +40,10 @@ const messageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    opened: {
+      type: Boolean,
+      required: true,
+    },
   },
   { timestamps: true }
 );

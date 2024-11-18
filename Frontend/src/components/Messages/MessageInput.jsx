@@ -23,6 +23,7 @@ const MessageInput = () => {
       productName: naziv,
       rez,
       buyer: kupac,
+      opened: false,
     };
     await sendMessage(message);
 
@@ -70,7 +71,7 @@ const MessageInput = () => {
               onChange={(e) => setIme(e.target.value)}
               className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
             >
-              <option value="" selected>
+              <option value="" defaultValue>
                 Izaberi prodavca
               </option>
               <option value="Mita Babic">Mita Babic</option>
@@ -162,7 +163,7 @@ const MessageInput = () => {
             </label>
             <button
               type="submit"
-              className="absolute end-0 flex items-center pe-3"
+              className="absolute end-0 myBtn flex items-center pe-3"
             >
               <BsSend className="w-6 h-6" />
             </button>
