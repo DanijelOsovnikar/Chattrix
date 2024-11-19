@@ -71,14 +71,39 @@ const MessageInput = () => {
               onChange={(e) => setIme(e.target.value)}
               className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
             >
-              <option value="" defaultValue>
+               <option value="" defaultValue>
                 Izaberi prodavca
               </option>
               <option value="Mita Babic">Mita Babic</option>
               <option value="Tijana Vlatkovic">Tijana Vlatkovic</option>
               <option value="Bogdan Ostojic">Bogdan Ostojic</option>
-              <option value="Danijel Osovnikar">Danijel Osovnikar</option>
               <option value="Jovan Milosavljevic">Jovan Milosavljevic</option>
+              <option value="Dejan Nestorov">Dejan Nestorov</option>
+              <option value="Nikola Milisic">Nikola Milisic</option>
+              <option value="Danijel Osovnikar">Danijel Osovnikar</option>
+              <option value="Zoran Icin">Zoran Icin</option>
+              <option value="Branislav Cucin">Branislav Cucin</option>
+              <option value="Aleksandar Peric">Aleksandar Peric</option>
+              <option value="Aleksandra Sretovic">Aleksandra Sretovic</option>
+              <option value="Aleksandra Vukasinovic">
+                Aleksandra Vukasinovic
+              </option>
+              <option value="Denis Lavodic">Denis Lavodic</option>
+              <option value="Ilija Popnovakov">Ilija Popnovakov</option>
+              <option value="Milica Jesic">Milica Jesic</option>
+              <option value="Bozidar Miljevic">Bozidar Miljevic</option>
+              <option value="Miloslav Funtik">Miloslav Funtik</option>
+              <option value="Adrijana Jokic">Adrijana Jokic</option>
+              <option value="Dunja Jovanovic">Dunja Jovanovic</option>
+              <option value="Dragan Corkovic">Dragan Corkovic</option>
+              <option value="Jovan Stefanovic">Jovan Stefanovic</option>
+              <option value="Katica Jovic">Katica Jovic</option>
+              <option value="Marija Miletic">Marija Miletic</option>
+              <option value="Nenad Kocar">Nenad Kocar</option>
+              <option value="Nikola Savkovic">Nikola Savkovic</option>
+              <option value="Uros Milutinovic">Uros Milutinovic</option>
+              <option value="Borislav Mirkov">Borislav Mirkov</option>
+              <option value="Luka Grbic">Luka Grbic</option>
             </select>
             <p className="my-2">Sava Osiguranje</p>
             <label
