@@ -9,7 +9,7 @@ import { Notifications } from "react-push-notification";
 function App() {
   const { authUser } = useAuthContext();
   return (
-    <div className="p-4 h-screen flex justify-center">
+    <div className="p-4 flex justify-center">
       <Routes>
         <Route
           path="/"

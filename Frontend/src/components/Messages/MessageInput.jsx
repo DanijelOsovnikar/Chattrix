@@ -71,7 +71,7 @@ const MessageInput = () => {
               onChange={(e) => setIme(e.target.value)}
               className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
             >
-              <option value="" defaultValue>
+               <option value="" defaultValue>
                 Izaberi prodavca
               </option>
               <option value="Mita Babic">Mita Babic</option>
