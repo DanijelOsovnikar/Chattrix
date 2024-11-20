@@ -16,22 +16,35 @@ body {
   height: unset;
 }
 
+.messContainer {
+  padding: 0.5rem;
+}
+
+.sidebar {
+  padding: 0.5rem;
+}
+
 @media screen and (max-width: 700px) {
+  .mainWrapper {
+    padding: 1rem 5px;
+  }
+
   .homeWrapper {
     flex-direction: column;
     overflow: auto;
     padding: unset;
+    width: 100%;
   }
 
   .myBtn {
     display: block;
-    bottom: 0;
+    bottom: 8px;
   }
 
   .searchBTN {
     position: absolute;
-    right: 70px;
-    top: 26px;
+    right: 57px;
+    top: 18px;
   }
 
   .wrapper {

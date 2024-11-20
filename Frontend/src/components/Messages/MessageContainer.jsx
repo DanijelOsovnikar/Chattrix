@@ -26,7 +26,7 @@ const MessageContainer = () => {
             </span>
           </div>
           <Messages />
-          <MessageInput />
+          {selectedConversation.fullName === "Admin" ? null : <MessageInput />}
         </>
       )}
     </div>

@@ -9,6 +9,8 @@ const MessageInput = () => {
   const [naziv, setNaziv] = useState("");
   const [kupac, setKupac] = useState("");
   const [ime, setIme] = useState("");
+  const [web, setWeb] = useState("");
+  const [savaGodine, setSavaGodine] = useState("");
   const [sava, setSava] = useState(false);
   const [pack, setPack] = useState(false);
   const [rez, setRez] = useState(false);
@@ -39,7 +41,7 @@ const MessageInput = () => {
   return (
     <>
       {activeForm ? (
-        <form className="px-4 my-3" onSubmit={handleSubmit}>
+        <form className=" my-3" onSubmit={handleSubmit}>
           <div className="w-full relative">
             <input
               type="text"
@@ -69,9 +71,9 @@ const MessageInput = () => {
               name="ime"
               id="ime"
               onChange={(e) => setIme(e.target.value)}
-              className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
+              className="border min-h-9 my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
             >
-               <option value="" defaultValue>
+              <option value="" defaultValue>
                 Izaberi prodavca
               </option>
               <option value="Mita Babic">Mita Babic</option>
@@ -132,7 +134,37 @@ const MessageInput = () => {
                 onChange={() => setSava(false)}
               />
             </label>
-            <p className="my-2">Pakovanje proizvoda</p>
+            {sava ? (
+              <>
+                <label
+                  className="m-2 checkbox-label p-2 cursor-pointer rounded-md"
+                  htmlFor="savaGodina"
+                >
+                  1 God
+                  <input
+                    type="radio"
+                    name="savaGod"
+                    id="savaGodina"
+                    className="appearance-none"
+                    onChange={() => setSavaGodine("1 Godina")}
+                  />
+                </label>
+                <label
+                  className="m-2 checkbox-label p-2 cursor-pointer rounded-md"
+                  htmlFor="savaDveGodine"
+                >
+                  2 God
+                  <input
+                    type="radio"
+                    name="savaGod"
+                    id="savaDveGodine"
+                    className="appearance-none"
+                    onChange={() => setSavaGodine("2 Godine")}
+                  />
+                </label>
+              </>
+            ) : null}
+            <p className="my-2">Treba da se spakuje proizvod</p>
             <label
               className="m-2 checkbox-label p-2 cursor-pointer rounded-md"
               htmlFor="packDa"
@@ -186,9 +218,21 @@ const MessageInput = () => {
                 onChange={() => setRez(false)}
               />
             </label>
+            {rez ? (
+              <>
+                <input
+                  type="text"
+                  placeholder="WEB ili IME"
+                  id="webRez"
+                  value={web}
+                  onChange={(e) => setWeb(e.target.value)}
+                  className="border text-sm rounded-lg inline-block w-44 px-2 py-2.5 bg-gray-600 text-white"
+                />
+              </>
+            ) : null}
             <button
               type="submit"
-              className="absolute end-0 myBtn flex items-center pe-3"
+              className="absolute end-0 myBtn flex items-center pe-0"
             >
               <BsSend className="w-6 h-6" />
             </button>
