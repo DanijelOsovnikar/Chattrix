@@ -62,14 +62,6 @@ export const useSubscribe = () => {
   const publicVapidKey =
     "BEvmu6KRMuMBPD7xWEYeTQvOfw-TNTns8R0xifdmq1Y89gJql2-W_17TvHGU6HnusR4SlQqvMgbY8d--FUHvc4w";
 
-  Notification.requestPermission().then((permission) => {
-    if (permission === "granted") {
-      console.log("Notification permission granted.");
-    } else {
-      console.log("Notification permission denied.");
-    }
-  });
-
   const subscribeToPushNotifications = () => {
     if ("serviceWorker" in navigator) {
       send().catch((err) => console.error("Push subscription error:", err));
@@ -77,21 +69,8 @@ export const useSubscribe = () => {
   };
 
   // Register SW, Register Push, Send Push
-  async function send() {
+  const send = async () => {
     const token = localStorage.getItem("user");
-
-    // Check if a service worker is already registered
-    const existingRegistration =
-      await navigator.serviceWorker.getRegistration();
-    if (existingRegistration) {
-      console.log("Service worker already registered.");
-      const existingSubscription =
-        await existingRegistration.pushManager.getSubscription();
-      if (existingSubscription) {
-        console.log("Push subscription already exists:", existingSubscription);
-        return; // Avoid re-subscribing
-      }
-    }
 
     // Register Service Worker
     console.log("Registering service worker...");
@@ -100,26 +79,37 @@ export const useSubscribe = () => {
     });
     console.log("Service Worker Registered...");
 
+    // Wait for the service worker to activate
+    if (!navigator.serviceWorker.controller) {
+      console.log("Waiting for Service Worker to activate...");
+      await new Promise((resolve) => {
+        navigator.serviceWorker.addEventListener("controllerchange", resolve);
+      });
+    }
+
+    console.log("Service Worker is now active.");
+
     // Register Push
     console.log("Registering Push...");
     const subscription = await register.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
     });
+    console.log(subscription);
     console.log("Push Registered...");
 
     // Send Push Notification
     console.log("Sending Push...");
     await fetch(`/api/subscribe/${authUser._id}`, {
       method: "POST",
-      body: JSON.stringify({ subscription, createdAt: new Date() }),
+      body: JSON.stringify(subscription),
       headers: {
         "Content-type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     });
     console.log("Push Sent...");
-  }
+  };
 
   function urlBase64ToUint8Array(base64String) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
