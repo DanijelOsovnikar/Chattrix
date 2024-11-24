@@ -44,6 +44,12 @@ const messageSchema = new mongoose.Schema(
       type: Boolean,
       required: true,
     },
+    web: {
+      type: String,
+    },
+    savaGodine: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

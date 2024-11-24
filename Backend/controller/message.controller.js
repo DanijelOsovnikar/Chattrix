@@ -109,8 +109,18 @@ import webPush from "web-push";
 
 export const sendMessage = async (req, res) => {
   try {
-    const { ean, productName, sava, toPack, sellerId, rez, buyer, opened } =
-      req.body;
+    const {
+      ean,
+      productName,
+      sava,
+      toPack,
+      sellerId,
+      rez,
+      buyer,
+      opened,
+      web,
+      savaGodine,
+    } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id.toString();
 
@@ -145,6 +155,8 @@ export const sendMessage = async (req, res) => {
       rez,
       buyer,
       opened,
+      web,
+      savaGodine,
     });
 
     // Save the message to the database

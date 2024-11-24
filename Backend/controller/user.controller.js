@@ -6,7 +6,7 @@ export const getUsersForSidebar = async (req, res) => {
     let allUsers;
 
     if (
-      loggedInUserId === "67412f7cc9e8d92cc7b7f7ea" ||
+      loggedInUserId === "674303f38438fe8ab0a05c38" ||
       loggedInUserId === "67412f99c9e8d92cc7b7f7ed" ||
       loggedInUserId === "67412fb0c9e8d92cc7b7f7f0" ||
       loggedInUserId === "67412fc1c9e8d92cc7b7f7f3" ||

@@ -97,12 +97,26 @@ const Message = ({ message }) => {
         <span>${message.sava ? "Da" : "Ne"}</span>
         </div>
         <div class="group">
-        <p><strong>Zapakovati:</strong></p>
+        <p><strong>Produzena garanacija za:</strong></p>
+        <span>${
+          message.savaGodine === "1 Godina"
+            ? "1 Godinu"
+            : "" || message.savaGodine === "2 Godina"
+            ? "2 Godine"
+            : ""
+        }</span>
+        </div>
+        <div class="group">
+        <p><strong>Treba zapakovati uredjaj:</strong></p>
         <span>${message.toPack ? "Da" : "Ne"}</span>
         </div>
         <div class="group">
-        <p><strong>Odvojeno:</strong></p>
+        <p><strong>Uredjaj je na rezervaciji:</strong></p>
         <span>${message.rez ? "Da" : "Ne"}</span>
+        </div>
+        <div class="group">
+        <p><strong>WEB ili Ime kupca:</strong></p>
+        <span>${message.web}</span>
         </div>
         <div class="group">
         <p><strong>Kupac:</strong></p>

@@ -26,6 +26,8 @@ const MessageInput = () => {
       rez,
       buyer: kupac,
       opened: false,
+      web: web,
+      savaGodine: savaGodine,
     };
     await sendMessage(message);
 
@@ -36,6 +38,8 @@ const MessageInput = () => {
     setSava(false);
     setPack(false);
     setRez(false);
+    setSavaGodine("");
+    setWeb("");
   };
 
   return (
