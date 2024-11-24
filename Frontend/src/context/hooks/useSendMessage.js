@@ -11,7 +11,7 @@ const useSendMessage = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3000/api/messages/send/${selectedConversation._id}`,
+        `/api/messages/send/${selectedConversation._id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

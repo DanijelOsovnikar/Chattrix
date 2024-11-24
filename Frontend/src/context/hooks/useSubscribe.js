@@ -102,7 +102,7 @@ export const useSubscribe = () => {
 
     // Send Push Notification
     console.log("Sending Push...");
-    await fetch(`http://localhost:3000/api/subscribe/${authUser._id}`, {
+    await fetch(`/api/subscribe/${authUser._id}`, {
       method: "POST",
       body: JSON.stringify(subscription),
       headers: {
