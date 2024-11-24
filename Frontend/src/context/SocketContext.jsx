@@ -16,7 +16,7 @@ export const SocketContextProvider = ({ children }) => {
   useEffect(() => {
     // If authUser is defined, initialize the socket connection
     if (authUser) {
-      const socketInstance = io("https://gigaapp.onrender.com/", {
+      const socketInstance = io("", {
         query: { userId: authUser._id },
       });
 
