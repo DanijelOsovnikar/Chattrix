@@ -1,6 +1,111 @@
 import Conversation from "../models/conversation.js";
 import Message from "../models/message.js";
-import { getReceiverSocketId, io } from "../socket/socket.js";
+import User from "../models/user.model.js";
+import webPush from "web-push";
+
+// export const sendMessage = async (req, res) => {
+//   try {
+//     const { ean, productName, sava, toPack, sellerId, rez, buyer, opened } =
+//       req.body;
+//     const { id: receiverId } = req.params;
+//     const senderId = req.user._id.toString();
+
+//     // Get Socket.IO instance
+//     const io = req.io;
+
+//     // Find receiver's group
+//     const receiver = await User.findById(receiverId);
+//     if (!receiver) {
+//       return res.status(404).json({ message: "Receiver not found" });
+//     }
+
+//     // Fetch group members (including the receiver)
+//     const groupMembers = await User.find({
+//       _id: { $in: [...receiver.groupMembers, receiver._id] },
+//     });
+
+//     // Check for no members in the group
+//     if (groupMembers.length === 0) {
+//       return res.status(400).json({ message: "No members in the group" });
+//     }
+
+//     // Create a single message for the group
+//     const newMessage = new Message({
+//       senderId,
+//       receiverId: receiver._id, // Group is treated as the receiver
+//       ean,
+//       productName,
+//       sava,
+//       toPack,
+//       sellerId,
+//       rez,
+//       buyer,
+//       opened,
+//     });
+
+//     // Save the message to the database
+//     await newMessage.save();
+
+//     // Save the message in conversations for all members
+//     for (const member of groupMembers) {
+//       let conversation = await Conversation.findOne({
+//         participants: { $all: [senderId, member._id] },
+//       });
+
+//       if (!conversation) {
+//         conversation = await Conversation.create({
+//           participants: [senderId, member._id],
+//           messages: [],
+//         });
+//       }
+
+//       conversation.messages.push(newMessage._id);
+//       await conversation.save();
+//     }
+
+//     const publicVapidKey =
+//       "BEvmu6KRMuMBPD7xWEYeTQvOfw-TNTns8R0xifdmq1Y89gJql2-W_17TvHGU6HnusR4SlQqvMgbY8d--FUHvc4w";
+//     const privateVapidKey = process.env.PRIVATE_VAPID_KEY;
+
+//     const settings = {
+//       web: {
+//         vapidDetails: {
+//           subject: "mailto: <danijel.osovnikar@gmail.com>",
+//           publicKey: publicVapidKey,
+//           privateKey: privateVapidKey,
+//         },
+//         gcmAPIKey: "gcmkey",
+//         TTL: 2419200,
+//         contentEncoding: "aes128gcm",
+//         headers: {},
+//       },
+//       isAlwaysUseFCM: false,
+//     };
+
+//     const push = new PushNotifications(settings);
+
+//     const payload = { title: "Notification from Knock" };
+
+//     push.send(subscription, payload, (err, result) => {
+//       if (err) {
+//         console.log(err);
+//       } else {
+//         console.log(result);
+//       }
+//     });
+
+//     // Emit the message to all group members using a Socket.IO room
+//     const groupRoom = `group_${receiver._id}`;
+//     io.to(groupRoom).emit("newMessage", newMessage);
+
+//     res
+//       .status(200)
+//       .json({ messageCLG: "Message sent to group", message: newMessage });
+//   } catch (error) {
+//     console.error("Error in sendMessage controller", error);
+//     res.status(500).json({ error: "Internal server error!" });
+//   }
+// };
 
 export const sendMessage = async (req, res) => {
   try {
@@ -9,22 +114,29 @@ export const sendMessage = async (req, res) => {
     const { id: receiverId } = req.params;
     const senderId = req.user._id.toString();
 
-    console.log(ean, productName, sava, toPack, sellerId, rez, buyer);
+    // Get Socket.IO instance
+    const io = req.io;
 
-    let conversation = await Conversation.findOne({
-      participants: { $all: [senderId, receiverId] },
-    });
-
-    if (!conversation) {
-      conversation = await Conversation.create({
-        participants: [senderId, receiverId],
-        messages: [],
-      });
+    // Find receiver's group
+    const receiver = await User.findById(receiverId);
+    if (!receiver) {
+      return res.status(404).json({ message: "Receiver not found" });
     }
 
+    // Fetch group members (including the receiver)
+    const groupMembers = await User.find({
+      _id: { $in: [...receiver.groupMembers, receiver._id] },
+    });
+
+    // Check for no members in the group
+    if (groupMembers.length === 0) {
+      return res.status(400).json({ message: "No members in the group" });
+    }
+
+    // Create a single message for the group
     const newMessage = new Message({
       senderId,
-      receiverId,
+      receiverId: receiver._id, // Group is treated as the receiver
       ean,
       productName,
       sava,
@@ -35,20 +147,65 @@ export const sendMessage = async (req, res) => {
       opened,
     });
 
-    if (newMessage) {
+    // Save the message to the database
+    await newMessage.save();
+
+    // Save the message in conversations for all members
+    for (const member of groupMembers) {
+      let conversation = await Conversation.findOne({
+        participants: { $all: [senderId, member._id] },
+      });
+
+      if (!conversation) {
+        conversation = await Conversation.create({
+          participants: [senderId, member._id],
+          messages: [],
+        });
+      }
+
       conversation.messages.push(newMessage._id);
+      await conversation.save();
+
+      // Check if the member has a push subscription
+      if (member.pushSubscription) {
+        const subscription = member.pushSubscription;
+
+        if (subscription.keys.p256dh) {
+          webPush.setVapidDetails(
+            "mailto:danijel.osovnikar@gmail.com",
+            process.env.PUBLIC_VAPID_KEY,
+            process.env.PRIVATE_VAPID_KEY
+          );
+
+          const payload = JSON.stringify({
+            title: `From ${sellerId}`,
+            body: newMessage.productName, // Customize this to your needs
+            icon: "path_to_icon_or_image", // Optional icon
+          });
+
+          // Send push notification
+          try {
+            const result = await webPush.sendNotification(
+              subscription,
+              payload
+            );
+            console.log("Push notification sent:", result);
+          } catch (err) {
+            console.error("Push notification error:", err);
+          }
+        }
+      }
     }
 
-    await Promise.all([conversation.save(), newMessage.save()]);
+    // Emit the message to all group members using a Socket.IO room
+    const groupRoom = "group_67412fe4c9e8d92cc7b7f7fa";
+    io.to(groupRoom).emit("newMessage", newMessage);
 
-    const receiverSocketId = getReceiverSocketId(receiverId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
-    }
-
-    res.status(201).json(newMessage);
+    res
+      .status(200)
+      .json({ message: "Message sent to group", message: newMessage });
   } catch (error) {
-    console.log("Error in sendMessage controller", error);
+    console.error("Error in sendMessage controller", error);
     res.status(500).json({ error: "Internal server error!" });
   }
 };

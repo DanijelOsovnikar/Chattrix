@@ -23,10 +23,11 @@ const Message = ({ message }) => {
     async function test() {
       try {
         const res = await fetch(
-          `/api/messages/${selectedConversation._id}/${message._id}`,
+          `http://localhost:3000/api/messages/${selectedConversation._id}/${message._id}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
           }
         );
 

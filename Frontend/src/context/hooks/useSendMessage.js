@@ -11,11 +11,12 @@ const useSendMessage = () => {
 
     try {
       const res = await fetch(
-        `/api/messages/send/${selectedConversation._id}`,
+        `http://localhost:3000/api/messages/send/${selectedConversation._id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(message),
+          credentials: "include",
         }
       );
 
@@ -25,7 +26,7 @@ const useSendMessage = () => {
         throw new Error(data.error);
       }
 
-      setMessages([...messages, data]);
+      setMessages([...messages, data.message]);
     } catch (error) {
       toast.error(error.message);
     } finally {

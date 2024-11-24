@@ -5,7 +5,8 @@ import User from "../models/user.model.js";
 
 export const singup = async (req, res) => {
   try {
-    const { fullName, userName, password, confirmPassword } = req.body;
+    const { fullName, userName, password, confirmPassword, groupMembers } =
+      req.body;
 
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Passwords don't match!" });
@@ -24,6 +25,7 @@ export const singup = async (req, res) => {
       fullName,
       userName,
       password: hashedPassword,
+      groupMembers,
     });
 
     if (newUser) {

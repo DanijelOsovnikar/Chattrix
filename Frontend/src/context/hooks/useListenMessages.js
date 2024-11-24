@@ -13,9 +13,9 @@ const useListenMessages = () => {
   const { conversations } = useGetConversations();
 
   useEffect(() => {
-    socket?.on("newMessage", (newMessage) => {
+    socket?.on("newMessage", async (newMessage) => {
       const sound = new Audio(notificationSound);
-      sound.play();
+      await sound.play();
       const sender = newMessage.senderId;
 
       const currConversation = conversations.find((i) => i._id === sender);
@@ -27,19 +27,15 @@ const useListenMessages = () => {
         ];
         setConversations(updatedConversations);
 
-        if ("Notification" in window) {
-          alert("This browser does not support desktop notifications.");
-        }
-
-        try {
-          if (Notification.permission === "granted") {
-            new Notification("Test Notification", {
-              body: "This is a test notification.",
-            });
-          }
-        } catch (err) {
-          console.error("Error with notification:", err);
-        }
+        // try {
+        //   if (Notification.permission === "granted") {
+        //     new Notification("Test Notification", {
+        //       body: "This is a test notification.",
+        //     });
+        //   }
+        // } catch (err) {
+        //   console.error("Error with notification:", err);
+        // }
 
         // if (Notification.permission === "granted") {
         //   new Notification("Poruka od " + currConversation.fullName, {

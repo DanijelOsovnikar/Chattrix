@@ -16,6 +16,15 @@ const userSchema = new mongoose.Schema(
       required: true,
       minLenght: 6,
     },
+    groupMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    pushSubscription: {
+      endpoint: { type: String },
+      expirationTime: { type: Date, default: null },
+      keys: {
+        p256dh: { type: String },
+        auth: { type: String },
+      },
+    },
   },
   { timestamps: true }
 );
