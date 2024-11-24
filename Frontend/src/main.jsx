@@ -8,15 +8,13 @@ import { SocketContextProvider } from "./context/SocketContext.jsx";
 import { CoversationContextProvider } from "./context/ConversationContext.jsx";
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <BrowserRouter>
-      <AuthContextProvider>
-        <SocketContextProvider>
-          <CoversationContextProvider>
-            <App />
-          </CoversationContextProvider>
-        </SocketContextProvider>
-      </AuthContextProvider>
-    </BrowserRouter>
-  </StrictMode>
+  <BrowserRouter>
+    <AuthContextProvider>
+      <SocketContextProvider>
+        <CoversationContextProvider>
+          <App />
+        </CoversationContextProvider>
+      </SocketContextProvider>
+    </AuthContextProvider>
+  </BrowserRouter>
 );

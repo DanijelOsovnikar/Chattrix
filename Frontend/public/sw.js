@@ -1,3 +1,12 @@
+self.addEventListener("install", (event) => {
+  self.skipWaiting(); // Force service worker to activate immediately
+  event.waitUntil(
+    self.registration.showNotification("Direct Notification", {
+      body: "This is a direct test notification.",
+    })
+  );
+});
+
 self.addEventListener("push", (e) => {
   let data = {};
   if (e.data) {
@@ -6,13 +15,18 @@ self.addEventListener("push", (e) => {
 
   console.log("Push Received with Data:", data);
 
-  e.waitUntil(
-    self.registration.showNotification(data.title || "Default Title", {
-      body: data.body || "Default Body",
-      icon: data.icon || "/default-icon.png",
-      badge: data.badge || "/default-badge.png",
-    })
-  );
+  try {
+    e.waitUntil(
+      self.registration.showNotification(data.title || "Default Title", {
+        body: data.body || "Default Body",
+        icon: data.icon || "/default-icon.png",
+        badge: data.badge || "/default-badge.png",
+      })
+    );
+    console.log("Notification shown successfully!");
+  } catch (err) {
+    console.error("Failed to show notification:", err);
+  }
 });
 
 self.addEventListener("notificationclick", (event) => {

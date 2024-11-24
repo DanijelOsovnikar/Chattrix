@@ -62,6 +62,14 @@ export const useSubscribe = () => {
   const publicVapidKey =
     "BEvmu6KRMuMBPD7xWEYeTQvOfw-TNTns8R0xifdmq1Y89gJql2-W_17TvHGU6HnusR4SlQqvMgbY8d--FUHvc4w";
 
+  Notification.requestPermission().then((permission) => {
+    if (permission === "granted") {
+      console.log("Notification permission granted.");
+    } else {
+      console.log("Notification permission denied.");
+    }
+  });
+
   const subscribeToPushNotifications = () => {
     if ("serviceWorker" in navigator) {
       send().catch((err) => console.error("Push subscription error:", err));
@@ -104,7 +112,7 @@ export const useSubscribe = () => {
     console.log("Sending Push...");
     await fetch(`/api/subscribe/${authUser._id}`, {
       method: "POST",
-      body: JSON.stringify(subscription),
+      body: JSON.stringify({ subscription, createdAt: new Date() }),
       headers: {
         "Content-type": "application/json",
         Authorization: `Bearer ${token}`,

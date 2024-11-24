@@ -170,7 +170,7 @@ export const sendMessage = async (req, res) => {
       if (member.pushSubscription) {
         const subscription = member.pushSubscription;
 
-        if (subscription.keys.p256dh) {
+        if (subscription.keys.p256dh !== undefined) {
           webPush.setVapidDetails(
             "mailto:danijel.osovnikar@gmail.com",
             process.env.PUBLIC_VAPID_KEY,
