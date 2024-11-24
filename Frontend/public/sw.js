@@ -1,12 +1,3 @@
-self.addEventListener("install", (event) => {
-  self.skipWaiting(); // Force service worker to activate immediately
-  event.waitUntil(
-    self.registration.showNotification("Direct Notification", {
-      body: "This is a direct test notification.",
-    })
-  );
-});
-
 self.addEventListener("push", (e) => {
   let data = {};
   if (e.data) {
