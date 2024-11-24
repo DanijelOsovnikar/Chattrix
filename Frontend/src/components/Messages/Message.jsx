@@ -98,13 +98,7 @@ const Message = ({ message }) => {
         </div>
         <div class="group">
         <p><strong>Produzena garanacija za:</strong></p>
-        <span>${
-          message.savaGodine === "1 Godina"
-            ? "1 Godinu"
-            : "" || message.savaGodine === "2 Godina"
-            ? "2 Godine"
-            : ""
-        }</span>
+        <span>${message.savaGodine}</span>
         </div>
         <div class="group">
         <p><strong>Treba zapakovati uredjaj:</strong></p>
@@ -116,7 +110,7 @@ const Message = ({ message }) => {
         </div>
         <div class="group">
         <p><strong>WEB ili Ime kupca:</strong></p>
-        <span>${message.web}</span>
+        <span>${message.web || " "}</span>
         </div>
         <div class="group">
         <p><strong>Kupac:</strong></p>
