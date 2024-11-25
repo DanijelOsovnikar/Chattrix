@@ -50,6 +50,9 @@ const messageSchema = new mongoose.Schema(
     savaGodine: {
       type: String,
     },
+    gigaId: {
+      type: Number,
+    },
   },
   { timestamps: true }
 );

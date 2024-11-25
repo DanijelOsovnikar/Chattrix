@@ -127,6 +127,10 @@ export const sendMessage = async (req, res) => {
     // Get Socket.IO instance
     const io = req.io;
 
+    //Find sender gigaId
+
+    const senderGigaId = await User.findById(senderId);
+
     // Find receiver's group
     const receiver = await User.findById(receiverId);
     if (!receiver) {
@@ -157,8 +161,10 @@ export const sendMessage = async (req, res) => {
       opened,
       web,
       savaGodine,
+      gigaId: senderGigaId.gigaId,
     });
 
+    console.log(newMessage);
     // Save the message to the database
     await newMessage.save();
 

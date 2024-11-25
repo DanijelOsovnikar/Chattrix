@@ -9,6 +9,8 @@ const Message = ({ message }) => {
   const iframeRef = useRef(null);
   const [color, setColor] = useState(false);
 
+  console.log(message.gigaId);
+
   const fromMe = message.senderId === authUser._id;
   const chatClassName = fromMe ? "chat-end" : "chat-start";
   // const profilePic = fromMe ? authUser.img : selectedConversation?.img;
@@ -58,14 +60,19 @@ const Message = ({ message }) => {
         <style>
           body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            width:50%;
           }
           h2 {
-            margin: 10rem;
+            margin: 2rem;
             text-align:center;
             color: #333;
-            font
           }
+
+          img{
+          margin-left:9rem;
+          margin-bottom:2rem;
+          }
+
           p, span {
             font-size: 24px;
             margin: 10px 0;
@@ -84,6 +91,9 @@ const Message = ({ message }) => {
       </head>
       <body>
       <h2><strong>Prodavac:</strong> ${message.sellerId}</h2>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?data=${
+        message.gigaId
+      }&amp;size=100x100" alt="" />
         <div class="group">
         <p><strong>EAN:</strong></p>
         <span>${message.ean}</span>
@@ -97,7 +107,7 @@ const Message = ({ message }) => {
         <span>${message.sava ? "Da" : "Ne"}</span>
         </div>
         <div class="group">
-        <p><strong>Produzena garanacija za:</strong></p>
+        <p><strong>Dodatne:</strong></p>
         <span>${message.savaGodine}</span>
         </div>
         <div class="group">
@@ -116,9 +126,6 @@ const Message = ({ message }) => {
         <p><strong>Kupac:</strong></p>
         <span>${message.buyer}</span>
         </div>
-        <h2><strong>Vreme kreiranja:</strong> ${extractTime(
-          message.createdAt
-        )}</h2>
       </body>
       </html>
     `);

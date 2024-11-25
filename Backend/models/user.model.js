@@ -25,6 +25,9 @@ const userSchema = new mongoose.Schema(
         auth: { type: String },
       },
     },
+    gigaId: {
+      type: Number,
+    },
   },
   { timestamps: true }
 );
