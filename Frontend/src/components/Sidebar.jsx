@@ -2,6 +2,7 @@ import React from "react";
 import SearchInput from "./SearchInput";
 import Conversations from "./Conversations";
 import LogoutButton from "./LogoutButton";
+import NotificationsButton from "./NotificationsButton";
 
 const Sidebar = () => {
   return (
@@ -12,6 +13,7 @@ const Sidebar = () => {
         <Conversations />
       </div>
       <LogoutButton />
+      <NotificationsButton />
     </div>
   );
 };

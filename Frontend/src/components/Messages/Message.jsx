@@ -20,6 +20,7 @@ const Message = ({ message }) => {
     ? "bg-pink-500"
     : "";
   const formatedTime = extractTime(message.createdAt);
+  const qrCode = message.gigaId;
 
   useEffect(() => {
     async function test() {
@@ -91,9 +92,7 @@ const Message = ({ message }) => {
       </head>
       <body>
       <h2><strong>Prodavac:</strong> ${message.sellerId}</h2>
-      <img src="https://api.qrserver.com/v1/create-qr-code/?data=${
-        message.gigaId
-      }&amp;size=100x100" alt="" />
+      <img src="https://api.qrserver.com/v1/create-qr-code/?data=${qrCode}&amp;size=100x100" alt="" />
         <div class="group">
         <p><strong>EAN:</strong></p>
         <span>${message.ean}</span>

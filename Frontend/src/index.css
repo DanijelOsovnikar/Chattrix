@@ -11,7 +11,21 @@ body {
   scrollbar-width: none;
 }
 
-input[type=text]{
+.notifGroup {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notifGroup button {
+  padding: 10px;
+  margin: 0 0 10px 0;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+
+input[type="text"] {
   font-size: 16px !important;
 }
 
