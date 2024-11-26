@@ -304,6 +304,7 @@ const MessageInput = () => {
             setActiveForm(true);
             setTimeout(() => {
               ref.current.value = authUser.fullName;
+              setIme(authUser.fullName);
             }, 100);
           }}
         >
