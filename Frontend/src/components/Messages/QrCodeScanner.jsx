@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { Scanner } from "@yudiel/react-qr-scanner";
 import useConversations from "../../store/useConversation";
 
 const QrCodeScanner = () => {
@@ -12,65 +12,35 @@ const QrCodeScanner = () => {
     qrCodeName,
   } = useConversations();
 
-  useEffect(() => {
+  const scan = (result) => {
     if (qrCode) {
-      const scanner = new Html5QrcodeScanner("reader", {
-        qrbox: {
-          width: 250,
-          height: 250,
-        },
-        fps: 2,
-      });
-
-      scanner.render(success, error);
-
-      function success(result) {
-        scanner.clear();
-        setScannerResult(result);
-        setQrCode(false);
-      }
+      setScannerResult(result[0].rawValue);
+      setQrCode(false);
     }
 
     if (qrCodeName) {
-      const scannerName = new Html5QrcodeScanner("reader", {
-        qrbox: {
-          width: 250,
-          height: 250,
-        },
-        fps: 2,
-      });
+      const url = result[0].rawValue;
 
-      scannerName.render(successName, error);
+      // Create a URL object
+      const urlObj = new URL(url);
 
-      function successName(result) {
-        scannerName.clear();
-        const url = result;
+      // Get the pathname (everything after the domain)
+      const pathname = urlObj.pathname;
 
-        // Create a URL object
-        const urlObj = new URL(url);
+      // Split the pathname by `/` and get the last part
+      const lastPart = pathname.split("/").pop();
 
-        // Get the pathname (everything after the domain)
-        const pathname = urlObj.pathname;
+      // Remove the numeric suffix after the last hyphen
+      const extractedPart = lastPart.replace(/-\d+$/, "");
 
-        // Split the pathname by `/` and get the last part
-        const lastPart = pathname.split("/").pop();
+      const output = extractedPart.replace(/-/g, " ");
 
-        // Remove the numeric suffix after the last hyphen
-        const extractedPart = lastPart.replace(/-\d+$/, "");
-
-        const output = extractedPart.replace(/-/g, " ");
-
-        setScannerResultName(output);
-        setQrCodeName(false);
-      }
+      setScannerResultName(output);
+      setQrCodeName(false);
     }
+  };
 
-    function error(err) {
-      console.log(err);
-    }
-  }, []);
-
-  return <div id="reader"></div>;
+  return <Scanner onScan={scan} />;
 };
 
 export default QrCodeScanner;
