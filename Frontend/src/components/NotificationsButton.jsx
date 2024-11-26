@@ -1,15 +1,17 @@
 import React from "react";
 
 const NotificationsButton = () => {
-  const offHandler = () => {
-    if (Notification.permission === "granted") {
-      Notification.requestPermission();
+  const offHandler = async () => {
+    const request = await Notification.requestPermission();
+    if (request === "denied") {
+      console.log("notific disabled");
     }
   };
 
-  const onHandler = () => {
-    if (Notification.permission === "denied") {
-      Notification.requestPermission();
+  const onHandler = async () => {
+    const request = await Notification.requestPermission();
+    if (request === "granted") {
+      console.log("notific enabled");
     }
   };
   return (
