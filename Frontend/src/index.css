@@ -30,8 +30,8 @@ body {
 }
 #reader {
   position: absolute !important;
-  bottom: 200px;
-  left: 100px;
+  bottom: 50px;
+  left: 50px;
   background-color: white;
 }
 
