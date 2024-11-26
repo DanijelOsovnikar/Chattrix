@@ -4,7 +4,7 @@ import Home from "./pages/home/Home";
 import Login from "./pages/login/Login";
 import { useAuthContext } from "./context/AuthContext";
 import { Toaster } from "react-hot-toast";
-import QrCodeScanner from "./components/Messages/qrCodeScanner";
+import QrCodeScanner from "./components/Messages/QrCodeScanner";
 import useConversations from "./store/useConversation";
 
 function App() {
