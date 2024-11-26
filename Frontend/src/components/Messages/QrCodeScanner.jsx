@@ -18,6 +18,8 @@ const QrCodeScanner = () => {
         qrbox: {
           width: 250,
           height: 250,
+          defaultZoomValueIfSupported: 2,
+          showZoomSliderIfSupported: true,
         },
         fps: 2,
       });
@@ -36,6 +38,8 @@ const QrCodeScanner = () => {
         qrbox: {
           width: 250,
           height: 250,
+          defaultZoomValueIfSupported: 2,
+          showZoomSliderIfSupported: true,
         },
         fps: 2,
       });
