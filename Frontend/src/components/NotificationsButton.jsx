@@ -1,19 +1,23 @@
 import React from "react";
+import { useAuthContext } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 const NotificationsButton = () => {
+  const { authUser } = useAuthContext();
+
   const offHandler = async () => {
-    const request = await Notification.requestPermission();
-    if (request === "denied") {
-      console.log("notific disabled");
+    try {
+      const res = await fetch(`/api/deleteSubsription/${authUser._id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+      toast(data.message);
+    } catch (error) {
+      console.log(error);
     }
   };
 
-  const onHandler = async () => {
-    const request = await Notification.requestPermission();
-    if (request === "granted") {
-      console.log("notific enabled");
-    }
-  };
   return (
     <div className="notifGroup">
       <button
@@ -21,12 +25,6 @@ const NotificationsButton = () => {
         onClick={offHandler}
       >
         Notification Off
-      </button>
-      <button
-        className="hover:bg-amber-400 hover:text-black"
-        onClick={onHandler}
-      >
-        Notification On
       </button>
     </div>
   );

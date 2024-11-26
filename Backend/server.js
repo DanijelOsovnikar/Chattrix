@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.js";
 import messageRoutes from "./routes/message.js";
 import usersRoutes from "./routes/users.js";
 import subscribeRoutes from "./routes/subscribe.js";
+import deleteRoutes from "./routes/deleteSubscription.js";
 
 import connectToMongoDB from "./db/connectToMongoDB.js";
 import { app, server } from "./socket/socket.js";
@@ -32,6 +33,7 @@ app.use(express.json());
 
 app.use(cookieParser());
 
+app.use("/api/deleteSubsription", deleteRoutes);
 app.use("/api/subscribe", subscribeRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);

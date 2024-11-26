@@ -8,8 +8,7 @@ const Message = ({ message }) => {
   const { selectedConversation } = useConversation();
   const iframeRef = useRef(null);
   const [color, setColor] = useState(false);
-
-  console.log(message.gigaId);
+  const [qrCode, setQrCode] = useState("");
 
   const fromMe = message.senderId === authUser._id;
   const chatClassName = fromMe ? "chat-end" : "chat-start";
@@ -20,9 +19,17 @@ const Message = ({ message }) => {
     ? "bg-pink-500"
     : "";
   const formatedTime = extractTime(message.createdAt);
-  const qrCode = message.gigaId;
 
   useEffect(() => {
+    async function getQR() {
+      const qrCode = await fetch(
+        `https://api.qrserver.com/v1/create-qr-code/?data=${message.gigaId}&amp;size=100x100`
+      );
+      setQrCode(qrCode.url);
+    }
+
+    getQR();
+
     async function test() {
       try {
         const res = await fetch(
@@ -92,7 +99,7 @@ const Message = ({ message }) => {
       </head>
       <body>
       <h2><strong>Prodavac:</strong> ${message.sellerId}</h2>
-      <img src="https://api.qrserver.com/v1/create-qr-code/?data=${qrCode}&amp;size=100x100" alt="" />
+      <img src=${qrCode} alt="" />
         <div class="group">
         <p><strong>EAN:</strong></p>
         <span>${message.ean}</span>

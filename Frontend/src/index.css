@@ -18,6 +18,23 @@ body {
   align-items: center;
 }
 
+.qrCodeBtn {
+  position: absolute;
+  right: 10px;
+  top: 7px;
+  font-size: 28px;
+}
+
+.groupInputQr {
+  position: relative;
+}
+#reader {
+  position: absolute !important;
+  bottom: 200px;
+  left: 100px;
+  background-color: white;
+}
+
 .notifGroup button {
   padding: 10px;
   margin: 0 0 10px 0;

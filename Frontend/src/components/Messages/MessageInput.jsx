@@ -1,6 +1,8 @@
-import React, { useState } from "react";
-import { BsSend } from "react-icons/bs";
+import React, { useEffect, useState, useRef } from "react";
+import { BsSend, BsQrCodeScan } from "react-icons/bs";
 import useSendMessage from "../../context/hooks/useSendMessage";
+import useConversations from "../../store/useConversation";
+import { useAuthContext } from "../../context/AuthContext";
 
 const MessageInput = () => {
   const { loading, sendMessage } = useSendMessage();
@@ -14,6 +16,40 @@ const MessageInput = () => {
   const [sava, setSava] = useState(false);
   const [pack, setPack] = useState(false);
   const [rez, setRez] = useState(false);
+  const [scanQr, setScanQr] = useState("");
+  const [scanName, setScanName] = useState("");
+
+  const ref = useRef();
+
+  const { authUser } = useAuthContext();
+
+  const {
+    scannerResult,
+    setQrCode,
+    qrCode,
+    setQrCodeName,
+    qrCodeName,
+    scannerResultName,
+  } = useConversations();
+
+  useEffect(() => {
+    if (scanQr != scannerResult) {
+      setEan(scannerResult);
+      setScanQr(scannerResult);
+    }
+    if (scanName != scannerResultName) {
+      setNaziv(scannerResultName);
+      setScanName(scannerResultName);
+    }
+  }, [qrCode, qrCodeName]);
+
+  const handleQrCodeClick = () => {
+    setQrCode(true);
+  };
+
+  const handleNameCodeClick = () => {
+    setQrCodeName(true);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,22 +83,40 @@ const MessageInput = () => {
       {activeForm ? (
         <form className=" my-3" onSubmit={handleSubmit}>
           <div className="w-full relative">
-            <input
-              type="text"
-              placeholder="EAN"
-              id="ean"
-              value={ean}
-              onChange={(e) => setEan(e.target.value)}
-              className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
-            />
-            <input
-              type="text"
-              placeholder="NAZIV PROIZVODA"
-              id="naziv"
-              value={naziv}
-              onChange={(e) => setNaziv(e.target.value)}
-              className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
-            />
+            <div className="groupInputQr">
+              <input
+                type="text"
+                placeholder="EAN"
+                id="ean"
+                value={ean}
+                onChange={(e) => setEan(e.target.value)}
+                className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
+              />
+              <button
+                type="button"
+                className="qrCodeBtn"
+                onClick={handleQrCodeClick}
+              >
+                <BsQrCodeScan />
+              </button>
+            </div>
+            <div className="groupInputQr">
+              <input
+                type="text"
+                placeholder="NAZIV PROIZVODA"
+                id="naziv"
+                value={naziv}
+                onChange={(e) => setNaziv(e.target.value)}
+                className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
+              />
+              <button
+                type="button"
+                className="qrCodeBtn"
+                onClick={handleNameCodeClick}
+              >
+                <BsQrCodeScan />
+              </button>
+            </div>
             <input
               type="text"
               placeholder="IME KUPCA"
@@ -72,6 +126,7 @@ const MessageInput = () => {
               className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
             />
             <select
+              ref={ref}
               name="ime"
               id="ime"
               onChange={(e) => setIme(e.target.value)}
@@ -245,7 +300,12 @@ const MessageInput = () => {
       ) : (
         <button
           className="p-2 m-4 my-3 w-11/12 bg-gray-600 hover:bg-gray-500 rounded-lg text-white"
-          onClick={() => setActiveForm(true)}
+          onClick={() => {
+            setActiveForm(true);
+            setTimeout(() => {
+              ref.current.value = authUser.fullName;
+            }, 100);
+          }}
         >
           Send a order
         </button>
