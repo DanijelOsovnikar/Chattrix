@@ -1,5 +1,18 @@
 import mongoose from "mongoose";
 
+const ProductListSchema = new mongoose.Schema({
+  ean: {
+    type: Number,
+  },
+  naziv: {
+    type: String,
+  },
+  qty: {
+    type: Number,
+    default: 1,
+  },
+});
+
 const messageSchema = new mongoose.Schema(
   {
     senderId: {
@@ -12,13 +25,8 @@ const messageSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    ean: {
-      type: Number,
-      required: true,
-    },
-    productName: {
-      type: String,
-      required: true,
+    messages: {
+      type: [ProductListSchema],
     },
     sava: {
       type: Boolean,

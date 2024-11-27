@@ -40,6 +40,14 @@ svg {
   border: none !important;
 }
 
+#qty {
+  min-height: 42px;
+}
+
+#ime {
+  min-height: 42px;
+}
+
 .notifGroup button {
   padding: 10px;
   margin: 0 0 10px 0;

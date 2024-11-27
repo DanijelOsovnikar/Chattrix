@@ -9,7 +9,7 @@ self.addEventListener("push", (e) => {
   try {
     e.waitUntil(
       self.registration.showNotification(data.title || "Default Title", {
-        body: data.body || "Default Body",
+        body: data.body + " EAN: " + data.ean || "Default Body",
         icon: data.icon || "/default-icon.png",
         badge: data.badge || "/default-badge.png",
       })

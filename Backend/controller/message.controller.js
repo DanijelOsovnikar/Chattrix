@@ -110,8 +110,7 @@ import webPush from "web-push";
 export const sendMessage = async (req, res) => {
   try {
     const {
-      ean,
-      productName,
+      messages,
       sava,
       toPack,
       sellerId,
@@ -151,8 +150,7 @@ export const sendMessage = async (req, res) => {
     const newMessage = new Message({
       senderId,
       receiverId: receiver._id, // Group is treated as the receiver
-      ean,
-      productName,
+      messages,
       sava,
       toPack,
       sellerId,
@@ -164,7 +162,6 @@ export const sendMessage = async (req, res) => {
       gigaId: senderGigaId.gigaId,
     });
 
-    console.log(newMessage);
     // Save the message to the database
     await newMessage.save();
 
@@ -197,8 +194,9 @@ export const sendMessage = async (req, res) => {
 
           const payload = JSON.stringify({
             title: `From ${sellerId}`,
-            body: newMessage.productName, // Customize this to your needs
-            icon: "path_to_icon_or_image", // Optional icon
+            body: newMessage.messages[0].naziv,
+            ean: newMessage.messages[0].ean,
+            icon: "path_to_icon_or_image",
           });
 
           // Send push notification
@@ -235,6 +233,21 @@ export const checkedMessage = async (req, res) => {
     let message = await Message.findOneAndUpdate(
       { _id: messageId },
       { opened: true }
+    );
+
+    res.status(201).json(message);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const uncheckMessage = async (req, res) => {
+  try {
+    const { messId: messageId } = req.params;
+
+    let message = await Message.findOneAndUpdate(
+      { _id: messageId },
+      { opened: false }
     );
 
     res.status(201).json(message);

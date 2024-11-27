@@ -14,6 +14,8 @@ const useConversations = create((set) => ({
   setQrCodeName: (qrCodeName) => set({ qrCodeName }),
   scannerResultName: "",
   setScannerResultName: (scannerResultName) => set({ scannerResultName }),
+  activeScannerIndex: null,
+  setActiveScannerIndex: (activeScannerIndex) => set({ activeScannerIndex }),
 }));
 
 export default useConversations;

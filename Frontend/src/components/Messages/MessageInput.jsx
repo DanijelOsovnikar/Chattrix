@@ -1,14 +1,18 @@
-import React, { useEffect, useState, useRef } from "react";
-import { BsSend, BsQrCodeScan } from "react-icons/bs";
+import React, { useState, useRef } from "react";
+import { BsSend } from "react-icons/bs";
 import useSendMessage from "../../context/hooks/useSendMessage";
-import useConversations from "../../store/useConversation";
 import { useAuthContext } from "../../context/AuthContext";
+import MainInputFields from "./MainInputFields";
+import useConversations from "../../store/useConversation";
 
 const MessageInput = () => {
+  const ref = useRef();
+
+  const { authUser } = useAuthContext();
+  const { setScannerResult, setScannerResultName } = useConversations();
+
   const { loading, sendMessage } = useSendMessage();
   const [activeForm, setActiveForm] = useState(false);
-  const [ean, setEan] = useState("");
-  const [naziv, setNaziv] = useState("");
   const [kupac, setKupac] = useState("");
   const [ime, setIme] = useState("");
   const [web, setWeb] = useState("");
@@ -16,60 +20,34 @@ const MessageInput = () => {
   const [sava, setSava] = useState(false);
   const [pack, setPack] = useState(false);
   const [rez, setRez] = useState(false);
-  const [scanQr, setScanQr] = useState("");
-  const [scanName, setScanName] = useState("");
 
-  const ref = useRef();
+  const [messages, setMessages] = useState([{ ean: "", naziv: "", qty: 1 }]);
 
-  const { authUser } = useAuthContext();
-
-  const {
-    scannerResult,
-    setQrCode,
-    qrCode,
-    setQrCodeName,
-    qrCodeName,
-    scannerResultName,
-  } = useConversations();
-
-  useEffect(() => {
-    if (scanQr != scannerResult) {
-      setEan(scannerResult);
-      setScanQr(scannerResult);
-    }
-    if (scanName != scannerResultName) {
-      setNaziv(scannerResultName);
-      setScanName(scannerResultName);
-    }
-  }, [qrCode, qrCodeName]);
-
-  const handleQrCodeClick = () => {
-    setQrCode(true);
-  };
-
-  const handleNameCodeClick = () => {
-    setQrCodeName(true);
+  const addMessage = () => {
+    setScannerResult("");
+    setScannerResultName("");
+    const newMessage = { ean: "", naziv: "", qty: 1 };
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     let message = {
-      ean,
+      messages,
       sava,
       toPack: pack,
       sellerId: ime,
-      productName: naziv,
       rez,
       buyer: kupac,
       opened: false,
       web: web,
       savaGodine: savaGodine,
     };
+
     await sendMessage(message);
 
     setActiveForm(false);
-    setEan("");
-    setNaziv("");
+    setMessages([{ ean: "", naziv: "", qty: 1 }]);
     setKupac("");
     setSava(false);
     setPack(false);
@@ -78,45 +56,31 @@ const MessageInput = () => {
     setWeb("");
   };
 
+  const updateMessage = (index, field, value) => {
+    setMessages((prevMessages) =>
+      prevMessages.map((message, i) =>
+        i === index ? { ...message, [field]: value } : message
+      )
+    );
+  };
   return (
     <>
       {activeForm ? (
         <form className=" my-3" onSubmit={handleSubmit}>
+          <button type="button" onClick={addMessage} className="ml-auto">
+            Add Message
+          </button>
           <div className="w-full relative">
-            <div className="groupInputQr">
-              <input
-                type="text"
-                placeholder="EAN"
-                id="ean"
-                value={ean}
-                onChange={(e) => setEan(e.target.value)}
-                className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
+            {messages.map((message, index) => (
+              <MainInputFields
+                key={index}
+                index={index}
+                ean={message.ean}
+                naziv={message.naziv}
+                qty={message.qty}
+                updateMessage={updateMessage}
               />
-              <button
-                type="button"
-                className="qrCodeBtn"
-                onClick={handleQrCodeClick}
-              >
-                <BsQrCodeScan />
-              </button>
-            </div>
-            <div className="groupInputQr">
-              <input
-                type="text"
-                placeholder="NAZIV PROIZVODA"
-                id="naziv"
-                value={naziv}
-                onChange={(e) => setNaziv(e.target.value)}
-                className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-gray-600 text-white"
-              />
-              <button
-                type="button"
-                className="qrCodeBtn"
-                onClick={handleNameCodeClick}
-              >
-                <BsQrCodeScan />
-              </button>
-            </div>
+            ))}
             <input
               type="text"
               placeholder="IME KUPCA"
