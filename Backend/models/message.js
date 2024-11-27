@@ -30,27 +30,21 @@ const messageSchema = new mongoose.Schema(
     },
     sava: {
       type: Boolean,
-      required: true,
     },
     toPack: {
       type: Boolean,
-      required: true,
     },
     rez: {
       type: Boolean,
-      required: true,
     },
     sellerId: {
       type: String,
-      required: true,
     },
     buyer: {
       type: String,
-      required: true,
     },
     opened: {
       type: Boolean,
-      required: true,
     },
     web: {
       type: String,

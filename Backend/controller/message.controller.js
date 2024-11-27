@@ -193,9 +193,8 @@ export const sendMessage = async (req, res) => {
           );
 
           const payload = JSON.stringify({
-            title: `From ${sellerId}`,
+            title: `Ean: ${newMessage.messages[0].ean}`,
             body: newMessage.messages[0].naziv,
-            ean: newMessage.messages[0].ean,
             icon: "path_to_icon_or_image",
           });
 

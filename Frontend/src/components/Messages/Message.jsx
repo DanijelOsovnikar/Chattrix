@@ -126,7 +126,9 @@ const Message = ({ message }) => {
           </style>
         </head>
         <body>
-        <h2><strong>Prodavac:</strong> ${message.sellerId}</h2>
+        <h2><strong>Prodavac:</strong> ${message.sellerId}  -  ${
+        message.gigaId
+      }</h2>
          <div class="qr-code">${qrCodeSVG}</div>
           
           ${message.messages.map(
