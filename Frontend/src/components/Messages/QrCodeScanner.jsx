@@ -40,7 +40,11 @@ const QrCodeScanner = () => {
     }
   };
 
-  return <Scanner onScan={scan} />;
+  return (
+    <div className="scannerD">
+      <Scanner onScan={scan} />
+    </div>
+  );
 };
 
 export default QrCodeScanner;
