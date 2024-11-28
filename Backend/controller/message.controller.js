@@ -170,62 +170,62 @@ export const sendMessage = async (req, res) => {
 
     console.log(newMessage);
     // Save the message to the database
-    // await newMessage.save();
+    await newMessage.save();
 
-    // // Save the message in conversations for all members
-    // for (const member of groupMembers) {
-    //   let conversation = await Conversation.findOne({
-    //     participants: { $all: [senderId, member._id] },
-    //   });
+    // Save the message in conversations for all members
+    for (const member of groupMembers) {
+      let conversation = await Conversation.findOne({
+        participants: { $all: [senderId, member._id] },
+      });
 
-    //   if (!conversation) {
-    //     conversation = await Conversation.create({
-    //       participants: [senderId, member._id],
-    //       messages: [],
-    //     });
-    //   }
+      if (!conversation) {
+        conversation = await Conversation.create({
+          participants: [senderId, member._id],
+          messages: [],
+        });
+      }
 
-    //   conversation.messages.push(newMessage._id);
-    //   await conversation.save();
+      conversation.messages.push(newMessage._id);
+      await conversation.save();
 
-    //   // Check if the member has a push subscription
-    //   if (member.pushSubscription) {
-    //     const subscription = member.pushSubscription;
+      // Check if the member has a push subscription
+      if (member.pushSubscription) {
+        const subscription = member.pushSubscription;
 
-    //     if (subscription.keys.p256dh !== undefined) {
-    //       webPush.setVapidDetails(
-    //         "mailto:danijel.osovnikar@gmail.com",
-    //         process.env.PUBLIC_VAPID_KEY,
-    //         process.env.PRIVATE_VAPID_KEY
-    //       );
+        if (subscription.keys.p256dh !== undefined) {
+          webPush.setVapidDetails(
+            "mailto:danijel.osovnikar@gmail.com",
+            process.env.PUBLIC_VAPID_KEY,
+            process.env.PRIVATE_VAPID_KEY
+          );
 
-    //       const payload = JSON.stringify({
-    //         title: `Ean: ${newMessage.messages[0].ean}`,
-    //         body: newMessage.messages[0].naziv,
-    //         icon: "path_to_icon_or_image",
-    //       });
+          const payload = JSON.stringify({
+            title: `Ean: ${newMessage.messages[0].ean}`,
+            body: newMessage.messages[0].naziv,
+            icon: "path_to_icon_or_image",
+          });
 
-    //       // Send push notification
-    //       try {
-    //         const result = await webPush.sendNotification(
-    //           subscription,
-    //           payload
-    //         );
-    //         console.log("Push notification sent:", result);
-    //       } catch (err) {
-    //         console.error("Push notification error:", err);
-    //       }
-    //     }
-    //   }
-    // }
+          // Send push notification
+          try {
+            const result = await webPush.sendNotification(
+              subscription,
+              payload
+            );
+            console.log("Push notification sent:", result);
+          } catch (err) {
+            console.error("Push notification error:", err);
+          }
+        }
+      }
+    }
 
-    // // Emit the message to all group members using a Socket.IO room
-    // const groupRoom = "group_67412fe4c9e8d92cc7b7f7fa";
-    // io.to(groupRoom).emit("newMessage", newMessage);
+    // Emit the message to all group members using a Socket.IO room
+    const groupRoom = "group_67412fe4c9e8d92cc7b7f7fa";
+    io.to(groupRoom).emit("newMessage", newMessage);
 
-    // res
-    //   .status(200)
-    //   .json({ message: "Message sent to group", message: newMessage });
+    res
+      .status(200)
+      .json({ message: "Message sent to group", message: newMessage });
   } catch (error) {
     console.error("Error in sendMessage controller", error);
     res.status(500).json({ error: "Internal server error!" });
