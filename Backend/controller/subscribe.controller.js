@@ -8,7 +8,7 @@ export const subscribe = async (req, res) => {
     pushSubscription: subscription,
   });
 
-  console.log(user);
+  // console.log(user);
 
   res.status(201).json({ message: "Subscription saved!" });
 };

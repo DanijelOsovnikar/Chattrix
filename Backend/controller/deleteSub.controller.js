@@ -9,7 +9,7 @@ export const deleteSub = async (req, res) => {
 
   await user.save();
 
-  console.log("delete user push notification", user);
+  // console.log("delete user push notification", user);
 
   res.status(200).json({ message: "Notifikacije iskljucene!" });
 };
