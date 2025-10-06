@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import useLogin from "../../context/hooks/useLogin";
 
 const Login = () => {
@@ -43,7 +43,15 @@ const Login = () => {
             />
           </div>
           <div>
-            <button className="btn btn-block btn-md mt-10">Login</button>
+            <button disabled={loading} className="btn btn-block btn-md mt-10">
+              {loading ? (
+                <div
+                  className={`mx-auto animate-spin shrink-0 rounded-full border-solid dark:border-t-transparent border-t-transparent border-gray-400 h-6 w-6 border-[3px]`}
+                />
+              ) : (
+                "Login"
+              )}
+            </button>
           </div>
         </form>
       </div>

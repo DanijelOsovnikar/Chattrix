@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import PropTypes from "prop-types";
 
 export const CoversationContext = createContext();
 
@@ -14,4 +15,8 @@ export const CoversationContextProvider = ({ children }) => {
       {children}
     </CoversationContext.Provider>
   );
+};
+
+CoversationContextProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };

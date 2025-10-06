@@ -1,8 +1,10 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import useConversation from "../../store/useConversation";
 import { useAuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import QRCodeSVG from "qrcode-svg";
+import PropTypes from "prop-types";
+import { validate as isUUID } from "uuid";
 
 const Message = ({ message }) => {
   const { authUser } = useAuthContext();
@@ -10,11 +12,14 @@ const Message = ({ message }) => {
   const iframeRef = useRef(null);
   const [color, setColor] = useState(message.opened);
 
-  const fromMe = message.senderId === authUser._id;
+  const fromMe =
+    message.senderId?._id === authUser._id || message.senderId === authUser._id;
   const chatClassName = fromMe ? "chat-end" : "chat-start";
 
   const bgColor = fromMe
-    ? "bg-blue-500"
+    ? message.opened || color
+      ? "bg-green-500"
+      : "bg-blue-500"
     : message.opened || color
     ? "bg-pink-500"
     : "";
@@ -68,11 +73,25 @@ const Message = ({ message }) => {
 
   const handlePrint = () => {
     const iframe = iframeRef.current;
+    const gigamaxUser = isUUID(message.buyer);
 
     // Ensure the gigaId is a string
     const qrCodeContent = String(message.gigaId);
 
     try {
+      let gigamaxQrCodeSVG = "";
+
+      if (gigamaxUser) {
+        const gigamaxQrCode = new QRCodeSVG(String(message.buyer), {
+          width: 50,
+          height: 50,
+        });
+        gigamaxQrCode.options.width = 100;
+        gigamaxQrCode.options.height = 100;
+
+        gigamaxQrCodeSVG = gigamaxUser ? gigamaxQrCode.svg() : "";
+      }
+
       // Create the QR Code as a Data URL
       const qrCode = new QRCodeSVG(qrCodeContent, {
         width: 50,
@@ -123,14 +142,35 @@ const Message = ({ message }) => {
             .group:last-of-type{
             border-bottom: unset;
             }
+
+            .seller{
+            width: 50%;
+            padding: 0.5rem;
+            border: 1px solid black;
+            }
+
+            .sellerBuyer{
+            display: flex;
+            justify-content: space-between;
+            alighn-items: center;
+            }
           </style>
         </head>
         <body>
+        <div class="sellerBuyer">
+        <div class="seller">
         <h2><strong>Prodavac:</strong> ${message.sellerId}  -  ${
         message.gigaId
       }</h2>
          <div class="qr-code">${qrCodeSVG}</div>
-          
+          </div>
+       <div class="seller" style="border-left: none;">
+       <h2><strong>Kupac:</strong> ${
+         gigamaxUser ? "GIGAMAX Member" : message.buyer
+       }</h2>
+       <div class="qr-code">${gigamaxUser ? gigamaxQrCodeSVG : ""}</div>
+       </div>
+       </div>
           ${message.messages.map(
             (mess) =>
               `<div class="group"><p><strong>EAN:</strong></p><span>${mess.ean}</span></div>
@@ -190,24 +230,28 @@ const Message = ({ message }) => {
           if (!fromMe) handlePrint();
         }}
       >
-        {message.messages.map((mess) => (
-          <div key={mess.ean + mess.naziv}>
-            EAN: {mess.ean} <br />
-            {mess.naziv}
-          </div>
-        ))}
+        {message.messages && message.messages.length > 0 ? (
+          message.messages.map((mess, index) => (
+            <div key={`${message._id}-${mess.ean}-${mess.naziv}-${index}`}>
+              EAN: {mess.ean} <br />
+              {mess.naziv}
+            </div>
+          ))
+        ) : (
+          <div>No items in this message</div>
+        )}
       </div>
       {!fromMe ? (
         <input
           type="checkbox"
           name="opened"
           id="opened"
-          className="hover:cursor-pointer top-2/4 right-1 -translate-y-1/2 absolute"
+          className="checkbox hover:cursor-pointer top-2/4 right-1 -translate-y-1/2 absolute"
           onChange={handleCheckbox}
           checked={color}
         />
       ) : null}
-      <div className="chat-footer opacity-50 text-xs text-white flex gap-1 items-center">
+      <div className="chat-footer opacity-50 text-xs text-base-content flex gap-1 items-center">
         {formatedTime}
       </div>
       <iframe
@@ -220,6 +264,37 @@ const Message = ({ message }) => {
 };
 
 export default Message;
+
+Message.propTypes = {
+  message: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    senderId: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.shape({
+        _id: PropTypes.string.isRequired,
+        fullName: PropTypes.string,
+        shopId: PropTypes.string,
+      }),
+    ]).isRequired,
+    opened: PropTypes.bool,
+    createdAt: PropTypes.string.isRequired,
+    gigaId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    sellerId: PropTypes.string,
+    messages: PropTypes.arrayOf(
+      PropTypes.shape({
+        ean: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        naziv: PropTypes.string,
+        qty: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      })
+    ),
+    sava: PropTypes.bool,
+    savaGodine: PropTypes.string,
+    toPack: PropTypes.bool,
+    rez: PropTypes.bool,
+    web: PropTypes.string,
+    buyer: PropTypes.string,
+  }).isRequired,
+};
 
 function extractTime(dateString) {
   const date = new Date(dateString);

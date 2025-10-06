@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState, useContext } from "react";
 import { useAuthContext } from "./AuthContext";
 import io from "socket.io-client";
+import PropTypes from "prop-types";
 
 export const SocketContext = createContext();
 
@@ -14,21 +15,24 @@ export const SocketContextProvider = ({ children }) => {
   const { authUser } = useAuthContext();
 
   useEffect(() => {
-    // If authUser is defined, initialize the socket connection
-    if (authUser) {
-      const socketInstance = io("", {
+    // If authUser is defined and has shopId, initialize the socket connection
+    if (authUser && authUser.shopId) {
+      // console.log("Initializing socket connection for user:", authUser._id);
+
+      const socketInstance = io("http://localhost:3000", {
         query: { userId: authUser._id },
       });
 
       // Set the socket instance in state
       setSocket(socketInstance);
 
-      // Join the specific room after connecting
+      // Join the shop-specific room dynamically
+      const shopRoom = `shop_${authUser.shopId._id}`;
       socketInstance.emit("joinRoom", {
-        room: "group_67412fe4c9e8d92cc7b7f7fa",
+        room: shopRoom,
       });
 
-      // Handle online users update
+      // Handle online users update (now shop-scoped)
       socketInstance.on("getOnlineUsers", (users) => {
         setOnlineUsers(users);
       });
@@ -40,24 +44,25 @@ export const SocketContextProvider = ({ children }) => {
 
       // Cleanup on unmount or authUser change
       return () => {
-        console.log("Cleaning up socket...");
-        if (socketInstance) {
-          socketInstance.disconnect(); // Disconnect socket
-        }
-        setSocket(null); // Clear the socket state
+        // console.log("Cleaning up socket...");
+        socketInstance.disconnect();
+        setSocket(null);
+        setOnlineUsers([]);
       };
     } else {
-      // If no authUser, ensure any existing socket is disconnected
-      if (socket) {
-        console.log("Disconnecting socket due to missing authUser...");
-        socket.disconnect();
-        setSocket(null);
-      }
+      // If no authUser or no shopId, clear socket and users
+      setSocket(null);
+      setOnlineUsers([]);
     }
-  }, [authUser]); // Re-run effect when authUser changes
+  }, [authUser]); // Only depend on authUser changes
+
   return (
     <SocketContext.Provider value={{ socket, onlineUsers }}>
       {children}
     </SocketContext.Provider>
   );
+};
+
+SocketContextProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };

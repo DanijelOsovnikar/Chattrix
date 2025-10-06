@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import useConversations from "../../store/useConversation";
 
@@ -10,9 +9,17 @@ const QrCodeScanner = () => {
     setScannerResultName,
     qrCode,
     qrCodeName,
+    qrCodeKupac,
+    setQrCodeKupac,
+    setScannerResultKupac,
   } = useConversations();
 
   const scan = (result) => {
+    if (qrCodeKupac) {
+      setScannerResultKupac(result[0].rawValue);
+      setQrCodeKupac(false);
+    }
+
     if (qrCode) {
       setScannerResult(result[0].rawValue);
       setQrCode(false);

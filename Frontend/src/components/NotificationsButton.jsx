@@ -1,4 +1,3 @@
-import React from "react";
 import { useAuthContext } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
@@ -19,14 +18,15 @@ const NotificationsButton = () => {
   };
 
   return (
-    <div className="notifGroup">
+    <>
+      <p className="text-sm mb-2">Settings:</p>
       <button
-        className="hover:bg-amber-400 hover:text-black"
+        className="btn btn-sm btn-block btn-ghost justify-start"
         onClick={offHandler}
       >
         Notification Off
       </button>
-    </div>
+    </>
   );
 };
 

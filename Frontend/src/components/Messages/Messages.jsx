@@ -1,9 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Message from "./Message";
 import useGetMessages from "../../context/hooks/useGetMessages";
+import useConversations from "../../store/useConversation";
 
 const Messages = () => {
-  const { messages, loading } = useGetMessages();
+  useGetMessages(); // Still needed to fetch initial messages when conversation changes
+  const { messages } = useConversations(); // Get messages directly from Zustand store
   const lastMessageRef = useRef();
 
   useEffect(() => {
@@ -14,11 +16,18 @@ const Messages = () => {
 
   return (
     <div className="px-4 flex-1 overflow-auto">
-      {messages.map((message) => (
-        <div key={message._id} ref={lastMessageRef}>
-          <Message message={message} />
-        </div>
-      ))}
+      {Array.isArray(messages) && messages.length > 0 ? (
+        messages.map((message, index) => (
+          <div
+            key={message._id}
+            ref={index === messages.length - 1 ? lastMessageRef : null}
+          >
+            <Message message={message} />
+          </div>
+        ))
+      ) : (
+        <div className="text-center text-gray-500 mt-4">No messages yet</div>
+      )}
     </div>
   );
 };

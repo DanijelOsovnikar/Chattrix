@@ -4,18 +4,11 @@
 
 @layer components {
   .checkbox-label:has(input:checked) {
-    @apply bg-amber-400 text-black p-2;
+    @apply bg-primary text-primary-content p-2;
   }
 }
 body {
   scrollbar-width: none;
-}
-
-.notifGroup {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .qrCodeBtn {
@@ -78,13 +71,6 @@ svg {
   min-height: 42px;
 }
 
-.notifGroup button {
-  padding: 10px;
-  margin: 0 0 10px 0;
-  border-radius: 20px;
-  transition: all 0.2s ease;
-}
-
 input[type="text"] {
   font-size: 16px !important;
 }
@@ -95,18 +81,16 @@ input[type="text"] {
 }
 
 .messContainer {
-  padding: 0.5rem;
+  padding: 0.5rem 0;
+  width: 100%;
 }
 
 .sidebar {
-  padding: 0.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 0;
+  min-width: 300px;
 }
 
 @media screen and (max-width: 700px) {
-  .mainWrapper {
-    padding: 1rem 5px;
-  }
-
   .homeWrapper {
     flex-direction: column;
     overflow: auto;
@@ -137,20 +121,13 @@ input[type="text"] {
 
   .sidebar {
     border-right: none;
+    padding: 0.5rem 0;
   }
 }
 
 @media screen and (min-width: 1024px) {
   .homeWrapper {
     min-width: 850px;
-  }
-
-  .sidebar {
-    min-width: 280px;
-  }
-
-  .messContainer {
-    min-width: 700px;
   }
 }
 @media screen and (min-width: 1440px) {
@@ -159,7 +136,7 @@ input[type="text"] {
   }
 
   .sidebar {
-    min-width: 400px;
+    min-width: 330px;
   }
 
   .messContainer {

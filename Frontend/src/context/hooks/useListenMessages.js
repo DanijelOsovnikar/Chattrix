@@ -13,52 +13,105 @@ const useListenMessages = () => {
   const { conversations } = useGetConversations();
 
   useEffect(() => {
+    if (!socket) {
+      return;
+    }
+
     socket?.on("newMessage", async (newMessage) => {
-      const sound = new Audio(notificationSound);
-      await sound.play();
-      const sender = newMessage.senderId;
+      window.dispatchEvent(
+        new CustomEvent("conversationNewMessage", {
+          detail: newMessage,
+        })
+      );
 
-      const currConversation = conversations.find((i) => i._id === sender);
+      try {
+        const sound = new Audio(notificationSound);
+        await sound.play();
+      } catch {
+        // Sound play failed, continue silently
+      }
 
+      const senderId =
+        typeof newMessage.senderId === "object"
+          ? newMessage.senderId._id
+          : newMessage.senderId;
+
+      const receiverId =
+        typeof newMessage.receiverId === "object"
+          ? newMessage.receiverId._id
+          : newMessage.receiverId;
+
+      const currConversation = conversations.find((i) => i._id === senderId);
+
+      // Update conversations list if conversation exists
       if (currConversation) {
         const updatedConversations = [
           currConversation,
           ...conversations.filter((e) => e._id !== currConversation._id),
         ];
         setConversations(updatedConversations);
-
-        // try {
-        //   if (Notification.permission === "granted") {
-        //     new Notification("Test Notification", {
-        //       body: "This is a test notification.",
-        //     });
-        //   }
-        // } catch (err) {
-        //   console.error("Error with notification:", err);
-        // }
-
-        // if (Notification.permission === "granted") {
-        //   new Notification("Poruka od " + currConversation.fullName, {
-        //     body: newMessage.productName,
-        //   });
-        // } else if (Notification.permission !== "denied") {
-        //   Notification.requestPermission().then((permission) => {
-        //     if (permission === "granted") {
-        //       new Notification("Poruka od " + currConversation.fullName, {
-        //         body: newMessage.productName,
-        //       });
-        //     }
-        //   });
-        // } else {
-        //   console.error("Notification permission denied.");
-        // }
       }
 
-      setMessages([...messages, newMessage]);
+      const isForCurrentConversation =
+        selectedConversation &&
+        (selectedConversation._id === senderId ||
+          selectedConversation._id === receiverId);
+
+      if (isForCurrentConversation) {
+        const store = useConversations.getState();
+        const currentMessages = store.messages;
+        const setMessagesFunc = store.setMessages;
+
+        if (!Array.isArray(currentMessages)) {
+          setMessagesFunc([newMessage]);
+        } else {
+          const newMessagesArray = [...currentMessages, newMessage];
+          setMessagesFunc(newMessagesArray);
+        }
+      }
+
+      // Show notification with EAN and name
+      try {
+        const senderName =
+          currConversation?.fullName ||
+          newMessage.senderId?.fullName ||
+          "Unknown User";
+
+        const ean = newMessage.messages?.[0]?.ean || "No EAN";
+        const naziv = newMessage.messages?.[0]?.naziv || "No Name";
+
+        // Show browser notification only
+        if (Notification.permission === "granted") {
+          new Notification(`New message from ${senderName}`, {
+            body: `EAN: ${ean} - ${naziv}`,
+            icon: "/react.svg",
+          });
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission().then((permission) => {
+            if (permission === "granted") {
+              new Notification(`New message from ${senderName}`, {
+                body: `EAN: ${ean} - ${naziv}`,
+                icon: "/react.svg",
+              });
+            }
+          });
+        }
+      } catch {
+        // Notification failed, continue silently
+      }
     });
 
-    return () => socket?.off("newMessage");
-  }, [socket, messages, setMessages, conversations]);
+    return () => {
+      socket?.off("newMessage");
+    };
+  }, [
+    socket,
+    messages,
+    setMessages,
+    conversations,
+    selectedConversation,
+    setConversations,
+  ]);
 };
 
 export default useListenMessages;
