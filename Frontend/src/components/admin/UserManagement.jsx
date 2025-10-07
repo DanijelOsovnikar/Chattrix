@@ -385,7 +385,7 @@ const UserManagement = () => {
       {/* Create User Form */}
       {showCreateForm && (
         <div className="card bg-base-200 shadow-xl">
-          <div className="card-body">
+          <div className="card-body p-[1.5rem]">
             <h3 className="card-title text-lg sm:text-xl text-primary mb-4">
               Create New Employee
             </h3>
@@ -526,7 +526,7 @@ const UserManagement = () => {
 
       {/* Users Table */}
       <div className="card bg-base-100 shadow-xl">
-        <div className="card-body">
+        <div className="card-body p-0">
           <h3 className="card-title text-lg sm:text-xl text-primary mb-4">
             All Users
           </h3>

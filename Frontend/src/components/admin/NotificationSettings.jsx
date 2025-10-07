@@ -106,9 +106,9 @@ const NotificationSettings = () => {
   });
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+    <div className="space-y-4 sm:space-y-6 sm:p-6">
       <div className="card bg-base-200 shadow-xl">
-        <div className="card-body">
+        <div className="card-body p-[1.5rem]">
           <h2 className="card-title text-xl sm:text-2xl text-primary mb-4">
             Notification Settings Management
           </h2>
