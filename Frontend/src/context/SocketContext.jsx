@@ -19,7 +19,13 @@ export const SocketContextProvider = ({ children }) => {
     if (authUser && authUser.shopId) {
       // console.log("Initializing socket connection for user:", authUser._id);
 
-      const socketInstance = io("http://localhost:3000", {
+      // Use the current location for production, localhost for development
+      const socketUrl =
+        import.meta.env.MODE === "production"
+          ? window.location.origin
+          : "http://localhost:3000";
+
+      const socketInstance = io(socketUrl, {
         query: { userId: authUser._id },
       });
 
