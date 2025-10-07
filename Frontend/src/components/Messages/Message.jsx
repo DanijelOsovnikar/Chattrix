@@ -221,7 +221,7 @@ const Message = ({ message }) => {
     <div className={`chat ${chatClassName} relative`}>
       <div className="chat-image avatar ">
         <div className="w-10 rounded-full ">
-          <img id="avatar" src="/infos_404.png" alt="icon photo" />
+          <img id="avatar" src="/avataaars.png" alt="icon photo" />
         </div>
       </div>
       <div

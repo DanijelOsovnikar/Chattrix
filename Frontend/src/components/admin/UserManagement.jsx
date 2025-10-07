@@ -351,7 +351,7 @@ const UserManagement = () => {
             <select
               value={selectedShopFilter}
               onChange={(e) => setSelectedShopFilter(e.target.value)}
-              className="select select-bordered select-sm bg-base-200 text-base-content w-full max-w-xs"
+              className="select select-bordered select-sm bg-base-200 text-base-content w-full max-w-[10rem]"
             >
               <option value="">All shops</option>
               {shops.map((shop) => (
