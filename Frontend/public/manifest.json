@@ -1,0 +1,27 @@
+{
+  "name": "Chattrix",
+  "short_name": "Chattrix",
+  "description": "Real-time messaging and notifications for shops and warehouses.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "/avataaars.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/avataaars-1.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

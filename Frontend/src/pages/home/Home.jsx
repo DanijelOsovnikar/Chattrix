@@ -1,7 +1,5 @@
-import { useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
 import MessageContainer from "../../components/Messages/MessageContainer";
-import { useSubscribe } from "../../context/hooks/useSubscribe.js";
 import AdminButton from "../../components/AdminButton";
 import ThemeSelector from "../../components/ThemeSelector";
 import NotificationsButton from "../../components/NotificationsButton";
@@ -9,15 +7,8 @@ import { useAuthContext } from "../../context/AuthContext";
 import useLogout from "../../context/hooks/useLogout";
 
 const Home = () => {
-  const { subscribeToPushNotifications } = useSubscribe();
   const { authUser } = useAuthContext();
   const { logout } = useLogout();
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      subscribeToPushNotifications();
-    }
-  }, [subscribeToPushNotifications]);
 
   return (
     <>
