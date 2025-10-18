@@ -131,9 +131,7 @@ const Converastion = ({ conversation }) => {
           <div className="w-12 rounded-full">
             <img
               src={
-                authUser.fullName !== "Magacin"
-                  ? "/avataaars-1.png"
-                  : "/avataaars.png"
+                authUser.fullName !== "Magacin" ? "/avatar.png" : "/avatar.png"
               }
               alt="profile icon"
             />

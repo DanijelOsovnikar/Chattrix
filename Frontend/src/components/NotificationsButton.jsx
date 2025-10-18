@@ -45,7 +45,7 @@ const NotificationsButton = () => {
           }
         : {};
 
-      const res = await fetch(`/api/deleteSubsription/${authUser._id}`, {
+      const res = await fetch(`/api/deleteSubscription/${authUser._id}`, {
         method: "DELETE",
         credentials: "include",
         headers,

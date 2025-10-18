@@ -14,12 +14,12 @@
       "sizes": "any"
     },
     {
-      "src": "/avataaars.png",
+      "src": "/avatar.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/avataaars-1.png",
+      "src": "/avatar.png",
       "type": "image/png",
       "sizes": "512x512"
     }

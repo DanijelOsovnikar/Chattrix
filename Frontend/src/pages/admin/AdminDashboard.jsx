@@ -4,6 +4,7 @@ import useLogout from "../../context/hooks/useLogout";
 import UserManagement from "../../components/admin/UserManagement";
 import ShopManagement from "../../components/admin/ShopManagement";
 import NotificationSettings from "../../components/admin/NotificationSettings";
+import PasswordManagement from "../../components/admin/PasswordManagement";
 import Sidebar from "../../components/Sidebar";
 import MessageContainer from "../../components/Messages/MessageContainer";
 import ThemeSelector from "../../components/ThemeSelector";
@@ -74,7 +75,7 @@ const AdminDashboard = () => {
               </div>
               <ul
                 tabIndex={0}
-                className="dropdown-content bg-base-200 text-base-content rounded-lg top-px h-96 max-h-fit w-40 overflow-y-auto shadow-2xl z-10"
+                className="dropdown-content bg-base-200 text-base-content rounded-lg top-px h-96 max-h-fit w-48 overflow-y-auto shadow-2xl z-10"
                 style={{ transform: "translateZ(0)", willChange: "transform" }}
               >
                 <li className="p-2 pb-0">
@@ -140,6 +141,20 @@ const AdminDashboard = () => {
               Notification Settings
             </button>
 
+            {/* Password Management tab - for admin, super_admin, and manager */}
+            {["admin", "super_admin", "manager"].includes(authUser.role) && (
+              <button
+                onClick={() => setActiveTab("passwords")}
+                className={`py-4 px-1 border-b-2 font-medium text-nowrap text-sm ${
+                  activeTab === "passwords"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-base-content hover:text-primary hover:border-primary"
+                }`}
+              >
+                Password Management
+              </button>
+            )}
+
             {/* Shop Management tab - only for super_admin */}
             {authUser.role === "super_admin" && (
               <button
@@ -167,6 +182,7 @@ const AdminDashboard = () => {
         )}
         {activeTab === "users" && <UserManagement />}
         {activeTab === "notifications" && <NotificationSettings />}
+        {activeTab === "passwords" && <PasswordManagement />}
         {activeTab === "shops" && authUser.role === "super_admin" && (
           <ShopManagement key={`shops-${activeTab}`} />
         )}

@@ -18,18 +18,19 @@ const MessageInput = () => {
   } = useConversations();
   const { loading, sendMessage } = useSendMessage();
   const [activeForm, setActiveForm] = useState(false);
+  const [kupacFilledByQR, setKupacFilledByQR] = useState(false);
 
   // React Hook Form setup
   const methods = useForm({
     defaultValues: {
-      messages: [{ ean: "", naziv: "", qty: 1 }],
+      messages: [
+        { ean: "", naziv: "", qty: 1, pack: "false", web: "", rez: "false" },
+      ],
       kupac: "",
+      kupacName: "",
       ime: "",
-      web: "",
       savaGodine: "",
       sava: "false",
-      pack: "false",
-      rez: "false",
     },
   });
 
@@ -42,7 +43,15 @@ const MessageInput = () => {
 
   // Watch specific fields for conditional rendering
   const watchSava = watch("sava");
-  const watchRez = watch("rez");
+  const watchKupac = watch("kupac");
+
+  // Reset QR flag when kupac field is manually edited
+  useEffect(() => {
+    // Only reset if the field was previously filled by QR and now it's different
+    if (kupacFilledByQR && watchKupac !== scannerResultKupac) {
+      setKupacFilledByQR(false);
+    }
+  }, [watchKupac, kupacFilledByQR, scannerResultKupac]);
 
   // Set seller name when form becomes active
   useEffect(() => {
@@ -55,25 +64,39 @@ const MessageInput = () => {
   useEffect(() => {
     if (scannerResultKupac) {
       setValue("kupac", scannerResultKupac);
+      setKupacFilledByQR(true); // Mark that this field was filled by QR
     }
   }, [scannerResultKupac, setValue]);
 
   const addMessage = () => {
     setScannerResult("");
     setScannerResultName("");
-    append({ ean: "", naziv: "", qty: 1 });
+    append({
+      ean: "",
+      naziv: "",
+      qty: 1,
+      pack: "false",
+      web: "",
+      rez: "false",
+    });
   };
 
   const onSubmit = async (data) => {
     const message = {
-      messages: data.messages,
+      messages: data.messages.map((item) => ({
+        ean: item.ean,
+        naziv: item.naziv,
+        qty: item.qty,
+        pack: item.pack === "true",
+        web: item.web,
+        rez: item.rez === "true",
+      })),
       sava: data.sava === "true",
-      toPack: data.pack === "true",
       sellerId: data.ime,
-      rez: data.rez === "true",
+      senderUsername: authUser.userName, // Include sender's username
       buyer: data.kupac,
+      buyerName: data.kupacName, // Include customer name if available
       opened: false,
-      web: data.web,
       savaGodine: data.savaGodine,
     };
 
@@ -81,15 +104,16 @@ const MessageInput = () => {
 
     // Reset form and close
     setActiveForm(false);
+    setKupacFilledByQR(false); // Reset QR flag
     reset({
-      messages: [{ ean: "", naziv: "", qty: 1 }],
+      messages: [
+        { ean: "", naziv: "", qty: 1, pack: "false", web: "", rez: "false" },
+      ],
       kupac: "",
+      kupacName: "",
       ime: "",
-      web: "",
       savaGodine: "",
       sava: "false",
-      pack: "false",
-      rez: "false",
     });
   };
 
@@ -105,13 +129,15 @@ const MessageInput = () => {
             className="py-3 overflow-y-scroll"
             onSubmit={handleSubmit(onSubmit)}
           >
-            <button
-              type="button"
-              onClick={addMessage}
-              className="mb-2 bg-primary text-primary-content py-1 px-4 rounded"
-            >
-              Add item
-            </button>
+            <div className="flex justify-end mb-2">
+              <button
+                type="button"
+                onClick={addMessage}
+                className="bg-primary text-primary-content py-1 px-4 rounded"
+              >
+                Add item
+              </button>
+            </div>
             <div className="w-full relative">
               {fields.map((field, index) => (
                 <MainInputFields
@@ -137,6 +163,17 @@ const MessageInput = () => {
                   <BsQrCodeScan />
                 </button>
               </div>
+
+              {/* Conditional customer name field - only show when kupac was filled by QR */}
+              {kupacFilledByQR && (
+                <input
+                  type="text"
+                  placeholder="Ime kupca"
+                  id="kupacName"
+                  {...control.register("kupacName")}
+                  className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-base-100 text-base-content !border-primary focus:!ring-0"
+                />
+              )}
 
               <input
                 ref={ref}
@@ -195,72 +232,9 @@ const MessageInput = () => {
                   </div>
                 )}
               </fieldset>
-              <fieldset className="fieldset bg-base-100 border-primary rounded-box border p-4 my-4">
-                <legend className="fieldset-legend px-2">
-                  Treba da se spakuje proizvod
-                </legend>
-                <label className="label cursor-pointer">
-                  <span className="label-text">Da</span>
-                  <input
-                    type="radio"
-                    value="true"
-                    id="packDa"
-                    {...control.register("pack")}
-                    className="radio radio-primary"
-                  />
-                </label>
-                <label className="label cursor-pointer">
-                  <span className="label-text">Ne</span>
-                  <input
-                    type="radio"
-                    value="false"
-                    id="packNe"
-                    {...control.register("pack")}
-                    className="radio radio-primary"
-                  />
-                </label>
-              </fieldset>
-              <fieldset className="fieldset bg-base-100 border-primary rounded-box border p-4 my-4">
-                <legend className="fieldset-legend px-2">
-                  Vec odvojen na rezervaciji
-                </legend>
-                <label className="label cursor-pointer">
-                  <span className="label-text">Da</span>
-                  <input
-                    type="radio"
-                    value="true"
-                    id="rezDa"
-                    {...control.register("rez")}
-                    className="radio radio-primary"
-                  />
-                </label>
-                <label className="label cursor-pointer">
-                  <span className="label-text">Ne</span>
-                  <input
-                    type="radio"
-                    value="false"
-                    id="rezNe"
-                    {...control.register("rez")}
-                    className="radio radio-primary"
-                  />
-                </label>
-                {watchRez === "true" && (
-                  <div className="mt-4">
-                    <input
-                      type="text"
-                      placeholder="WEB ili IME"
-                      id="webRez"
-                      {...control.register("web")}
-                      className="input input-bordered input-primary w-full max-w-xs"
-                    />
-                  </div>
-                )}
-              </fieldset>
               <button
                 type="submit"
-                className={`flex justify-center items-center my-4 bg-primary text-primary-content py-2 px-8 rounded ${
-                  watchRez === "true" ? "mt-4" : "mt-[27px]"
-                }`}
+                className="flex justify-center items-center my-4 bg-primary text-primary-content py-2 px-8 rounded mt-[27px]"
                 disabled={loading}
               >
                 Send request

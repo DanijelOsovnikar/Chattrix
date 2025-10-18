@@ -97,9 +97,12 @@ const NotificationSettings = () => {
 
   // Filter users based on role
   const filteredUsers = users.filter((user) => {
-    // Super admin can see all users
+    // Exclude warehousemen from notification settings
+    if (user.role === "warehouseman") return false;
+
+    // Super admin can see all users (except warehousemen)
     if (authUser.role === "super_admin") return true;
-    // Admin can only see users from their shop
+    // Admin can only see users from their shop (except warehousemen)
     if (authUser.role === "admin")
       return user.shopName === authUser.shopId?.name;
     return false;

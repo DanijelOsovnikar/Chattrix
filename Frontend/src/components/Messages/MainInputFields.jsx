@@ -18,6 +18,7 @@ const MainInputFields = ({ index, onRemove, canDelete }) => {
   // Watch the current field values
   const currentEan = watch(`messages.${index}.ean`);
   const currentNaziv = watch(`messages.${index}.naziv`);
+  const currentRez = watch(`messages.${index}.rez`);
 
   useEffect(() => {
     if (activeScannerIndex === index) {
@@ -89,6 +90,78 @@ const MainInputFields = ({ index, onRemove, canDelete }) => {
           </option>
         ))}
       </select>
+
+      {/* Pack radio buttons */}
+      <fieldset className="my-2">
+        <div className="flex justify-between items-center">
+          <legend className="text-sm font-medium text-base-content">
+            Treba da se spakuje proizvod
+          </legend>
+          <div className="flex gap-4">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                {...register(`messages.${index}.pack`)}
+                value="true"
+                className="radio radio-primary mr-2"
+              />
+              <span className="text-sm">Da</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                {...register(`messages.${index}.pack`)}
+                value="false"
+                className="radio radio-primary mr-2"
+              />
+              <span className="text-sm">Ne</span>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+
+      {/* Rez radio buttons */}
+      <fieldset className="my-2">
+        <div className="flex justify-between items-center">
+          <legend className="text-sm font-medium text-base-content">
+            Vec odvojen na rezervaciji
+          </legend>
+          <div className="flex gap-4">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                {...register(`messages.${index}.rez`)}
+                value="true"
+                className="radio radio-primary mr-2"
+              />
+              <span className="text-sm">Da</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                {...register(`messages.${index}.rez`)}
+                value="false"
+                className="radio radio-primary mr-2"
+              />
+              <span className="text-sm">Ne</span>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+
+      {/* Conditional Web field - only show when rez is "true" */}
+      {currentRez === "true" && (
+        <div className="my-2">
+          <input
+            type="text"
+            placeholder="WEB ili IME"
+            id={`web-${index}`}
+            {...register(`messages.${index}.web`)}
+            className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-base-100 text-base-content !border-primary focus:!ring-0"
+          />
+        </div>
+      )}
+
       {canDelete && (
         <button
           type="button"

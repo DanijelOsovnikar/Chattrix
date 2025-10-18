@@ -3,9 +3,13 @@ import Messages from "./Messages";
 import MessageInput from "./MessageInput";
 import useConversations from "../../store/useConversation";
 import { useAuthContext } from "../../context/AuthContext";
+import useListenMessageStatusSync from "../../context/hooks/useListenMessageStatusSync";
 
 const MessageContainer = () => {
   const { selectedConversation, setSelectedConversation } = useConversations();
+
+  // Enable real-time checkbox synchronization for warehousemen
+  useListenMessageStatusSync();
 
   useEffect(() => {
     return () => {

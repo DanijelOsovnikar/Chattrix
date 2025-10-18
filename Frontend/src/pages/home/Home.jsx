@@ -42,7 +42,7 @@ const Home = () => {
             </div>
             <ul
               tabIndex={0}
-              className="dropdown-content bg-base-200 text-base-content rounded-lg top-px h-96 max-h-fit w-40 overflow-y-auto shadow-2xl z-10"
+              className="dropdown-content bg-base-200 text-base-content rounded-lg top-px h-96 max-h-fit w-48 overflow-y-auto shadow-2xl z-10"
               style={{ transform: "translateZ(0)", willChange: "transform" }}
             >
               <li className="p-2 pb-0">
