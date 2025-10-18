@@ -114,12 +114,11 @@ export const sendMessage = async (req, res) => {
     const {
       messages,
       sava,
-      toPack,
       sellerId,
-      rez,
+      senderUsername,
       buyer,
+      buyerName,
       opened,
-      web,
       savaGodine,
     } = req.body;
     const { id: receiverId } = req.params;
@@ -157,7 +156,10 @@ export const sendMessage = async (req, res) => {
     // );
 
     // Check if this is a message to warehouse user (should be forwarded to warehousemen)
-    if (receiver.role === "warehouse" && req.user.role === "employee") {
+    if (
+      receiver.role === "warehouse" &&
+      ["employee", "admin", "manager"].includes(req.user.role)
+    ) {
       // console.log(
       //   `🏭 WAREHOUSE REQUEST DETECTED - Forwarding to warehousemen...`
       // );
@@ -168,12 +170,11 @@ export const sendMessage = async (req, res) => {
         shopId: receiver.shopId._id,
         messages,
         sava,
-        toPack,
         sellerId,
-        rez,
+        senderUsername,
         buyer,
+        buyerName,
         opened,
-        web,
         savaGodine,
         gigaId: senderGigaId.gigaId,
       });
@@ -227,12 +228,11 @@ export const sendMessage = async (req, res) => {
           shopId: receiver.shopId._id,
           messages,
           sava,
-          toPack,
           sellerId,
-          rez,
+          senderUsername,
           buyer,
+          buyerName,
           opened,
-          web,
           savaGodine,
           gigaId: senderGigaId.gigaId,
           status: "pending", // Mark as warehouse request
@@ -376,12 +376,11 @@ export const sendMessage = async (req, res) => {
       shopId: receiver.shopId._id, // Use receiver's shop for the message
       messages,
       sava,
-      toPack,
       sellerId,
-      rez,
+      senderUsername,
       buyer,
+      buyerName,
       opened,
-      web,
       savaGodine,
       gigaId: senderGigaId.gigaId,
     });
@@ -557,6 +556,31 @@ export const checkedMessage = async (req, res) => {
       }
     }
 
+    // Real-time sync: Notify all warehousemen in the same shop about the checkbox change
+    const io = req.io;
+    const warehousemen = await User.find({
+      shopId: req.user.shopId,
+      role: "warehouseman",
+      isActive: true,
+      _id: { $ne: req.user._id }, // Exclude the current user who made the change
+    });
+
+    const userSocketMap = getUserSocketMap();
+
+    warehousemen.forEach((warehouseman) => {
+      const warehousemanSockets = userSocketMap[warehouseman._id];
+      if (warehousemanSockets && warehousemanSockets.length > 0) {
+        warehousemanSockets.forEach((socketInfo) => {
+          io.to(socketInfo.socketId).emit("messageStatusSync", {
+            messageId: message._id,
+            opened: true,
+            updatedBy: req.user.fullName,
+            timestamp: new Date(),
+          });
+        });
+      }
+    });
+
     res.status(201).json(message);
   } catch (error) {
     // console.log("Error in checkedMessage controller:", error);
@@ -650,6 +674,31 @@ export const uncheckMessage = async (req, res) => {
         // console.log("🔕 Push notifications disabled or no subscription");
       }
     }
+
+    // Real-time sync: Notify all warehousemen in the same shop about the checkbox change
+    const io = req.io;
+    const warehousemen = await User.find({
+      shopId: req.user.shopId,
+      role: "warehouseman",
+      isActive: true,
+      _id: { $ne: req.user._id }, // Exclude the current user who made the change
+    });
+
+    const userSocketMap = getUserSocketMap();
+
+    warehousemen.forEach((warehouseman) => {
+      const warehousemanSockets = userSocketMap[warehouseman._id];
+      if (warehousemanSockets && warehousemanSockets.length > 0) {
+        warehousemanSockets.forEach((socketInfo) => {
+          io.to(socketInfo.socketId).emit("messageStatusSync", {
+            messageId: message._id,
+            opened: false,
+            updatedBy: req.user.fullName,
+            timestamp: new Date(),
+          });
+        });
+      }
+    });
 
     res.status(201).json(message);
   } catch (error) {

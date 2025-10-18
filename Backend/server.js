@@ -18,6 +18,7 @@ import subscribeRoutes from "./routes/subscribe.js";
 import deleteRoutes from "./routes/deleteSubscription.js";
 import shopRoutes from "./routes/shop.js";
 import notificationSettingsRoutes from "./routes/notificationSettings.js";
+import passwordRoutes from "./routes/password.js";
 
 import connectToMongoDB from "./db/connectToMongoDB.js";
 import { app, server } from "./socket/socket.js";
@@ -45,6 +46,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/shops", shopRoutes);
 app.use("/api/notifications", notificationSettingsRoutes);
+app.use("/api/password", passwordRoutes);
 
 app.use(express.static(join(__dirname, "../Frontend/dist")));
 

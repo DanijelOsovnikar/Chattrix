@@ -27,7 +27,7 @@ export const getNotificationPreferences = async (req, res) => {
       userId: user._id,
       fullName: user.fullName,
       notificationPreferences: user.notificationPreferences || {
-        itemReady: true,
+        itemReady: false,
         pushNotifications: true,
         browserNotifications: true,
         toastNotifications: true,
@@ -121,7 +121,7 @@ export const getAllUsersNotificationPreferences = async (req, res) => {
       shopName: user.shopId?.name,
       isActive: user.isActive,
       notificationPreferences: user.notificationPreferences || {
-        itemReady: true,
+        itemReady: false,
         pushNotifications: true,
         browserNotifications: true,
         toastNotifications: true,

@@ -68,7 +68,7 @@ const userSchema = new mongoose.Schema(
     notificationPreferences: {
       itemReady: {
         type: Boolean,
-        default: true,
+        default: false,
       },
       pushNotifications: {
         type: Boolean,

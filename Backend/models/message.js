@@ -11,6 +11,18 @@ const ProductListSchema = new mongoose.Schema({
     type: Number,
     default: 1,
   },
+  pack: {
+    type: Boolean,
+    default: false,
+  },
+  web: {
+    type: String,
+    default: "",
+  },
+  rez: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const messageSchema = new mongoose.Schema(
@@ -36,23 +48,20 @@ const messageSchema = new mongoose.Schema(
     sava: {
       type: Boolean,
     },
-    toPack: {
-      type: Boolean,
-    },
-    rez: {
-      type: Boolean,
-    },
     sellerId: {
+      type: String,
+    },
+    senderUsername: {
       type: String,
     },
     buyer: {
       type: String,
     },
+    buyerName: {
+      type: String,
+    },
     opened: {
       type: Boolean,
-    },
-    web: {
-      type: String,
     },
     savaGodine: {
       type: String,
