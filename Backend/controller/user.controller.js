@@ -16,15 +16,16 @@ export const getUsersForSidebar = async (req, res) => {
     if (loggedInUser.role === "super_admin") {
       query.shopId = { $exists: true };
     }
-    // Shop admins now see only warehouse users (like employees)
+    // Shop admins and managers see all users in their shop except themselves
     else if (["admin", "manager"].includes(loggedInUser.role)) {
       query.shopId = userShopId;
-      query.role = "warehouse";
+      // Optionally exclude super_admins if needed:
+      query.role = { $nin: ["super_admin"] };
     }
     // Warehousemen can see only employees in their shop (not other warehousemen)
     else if (loggedInUser.role === "warehouseman") {
       query.shopId = userShopId;
-      query.role = "employee";
+      query.role = { $in: ["employee", "admin", "manager"] };
     }
     // Employees can see only the warehouse user in their shop (not individual warehousemen)
     else if (loggedInUser.role === "employee") {

@@ -173,8 +173,8 @@ const Conversations = () => {
         </div>
       )}
 
-      {/* External Warehouses */}
-      {assignedWarehouses.length > 0 && (
+      {/* External Warehouses (hidden for warehouseman) */}
+      {assignedWarehouses.length > 0 && authUser?.role !== "warehouseman" && (
         <div className="mb-4">
           <div
             className="flex items-center justify-between gap-2 px-3 py-2 text-sm font-semibold text-base-content/70 bg-base-200/50 rounded cursor-pointer hover:bg-base-200/70 transition-colors"
