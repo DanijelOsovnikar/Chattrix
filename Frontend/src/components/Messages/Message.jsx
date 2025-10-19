@@ -25,6 +25,32 @@ const Message = ({ message }) => {
     : "";
   const formatedTime = extractTime(message.createdAt);
 
+  const handleExternalStatusUpdate = async (messageId, status) => {
+    try {
+      const res = await fetch(`/api/messages/${messageId}/external-status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          status,
+          notes: `Status updated to ${status} by ${authUser.fullName}`,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      toast.success(`Status updated to ${status}`);
+      // The message will be updated via socket event
+    } catch (error) {
+      console.error("Error updating external status:", error);
+      toast.error("Failed to update status");
+    }
+  };
+
   const handleCheckbox = async () => {
     if (color) {
       try {
@@ -422,6 +448,89 @@ const Message = ({ message }) => {
           if (!fromMe) handlePrint();
         }}
       >
+        {/* External Request Header */}
+        {message.isExternalRequest && (
+          <div className="mb-3 p-2 bg-black/20 rounded border-l-4 border-yellow-400">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-yellow-300 font-semibold text-xs">
+                🏭 EXTERNAL REQUEST
+              </span>
+            </div>
+            <div className="text-xs space-y-1">
+              <div>
+                📦 Order:{" "}
+                <span className="font-mono">{message.orderNumber}</span>
+              </div>
+              <div>
+                📅 Date: {new Date(message.orderDate).toLocaleDateString()}
+              </div>
+              <div>
+                📍 Status:
+                <span
+                  className={`ml-1 px-2 py-0.5 rounded text-xs font-bold ${
+                    message.externalStatus === "pending"
+                      ? "bg-yellow-600 text-yellow-100"
+                      : message.externalStatus === "sending"
+                      ? "bg-blue-600 text-blue-100"
+                      : message.externalStatus === "keeping"
+                      ? "bg-green-600 text-green-100"
+                      : message.externalStatus === "rejected"
+                      ? "bg-red-600 text-red-100"
+                      : "bg-gray-600 text-gray-100"
+                  }`}
+                >
+                  {message.externalStatus?.toUpperCase() || "PENDING"}
+                </span>
+              </div>
+              {message.lastUpdateDate &&
+                message.lastUpdateDate !== message.orderDate && (
+                  <div>
+                    🔄 Updated:{" "}
+                    {new Date(message.lastUpdateDate).toLocaleDateString()}
+                  </div>
+                )}
+            </div>
+          </div>
+        )}
+
+        {/* External Request Status Update Buttons - Only for warehousemen receiving external requests */}
+        {message.isExternalRequest &&
+          !fromMe &&
+          authUser.role === "warehouseman" && (
+            <div className="mb-3 p-2 bg-black/20 rounded">
+              <div className="text-xs text-yellow-300 mb-2 font-semibold">
+                Update Status:
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {["sending", "keeping", "rejected"].map((status) => (
+                  <button
+                    key={status}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleExternalStatusUpdate(message._id, status);
+                    }}
+                    className={`px-2 py-1 text-xs rounded font-bold transition-colors ${
+                      message.externalStatus === status
+                        ? "bg-white text-gray-800"
+                        : status === "sending"
+                        ? "bg-blue-600 hover:bg-blue-700 text-blue-100"
+                        : status === "keeping"
+                        ? "bg-green-600 hover:bg-green-700 text-green-100"
+                        : "bg-red-600 hover:bg-red-700 text-red-100"
+                    }`}
+                    disabled={message.externalStatus === status}
+                  >
+                    {status === "sending"
+                      ? "📤 Sending"
+                      : status === "keeping"
+                      ? "📦 Keeping"
+                      : "❌ Rejected"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
         {message.messages && message.messages.length > 0 ? (
           message.messages.map((mess, index) => (
             <div key={`${message._id}-${mess.ean}-${mess.naziv}-${index}`}>
@@ -487,6 +596,12 @@ Message.propTypes = {
     savaGodine: PropTypes.string,
     buyer: PropTypes.string,
     buyerName: PropTypes.string,
+    // External request fields
+    isExternalRequest: PropTypes.bool,
+    orderNumber: PropTypes.string,
+    orderDate: PropTypes.string,
+    externalStatus: PropTypes.string,
+    lastUpdateDate: PropTypes.string,
   }).isRequired,
 };
 

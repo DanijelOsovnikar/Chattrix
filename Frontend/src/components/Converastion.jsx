@@ -4,7 +4,7 @@ import useConversations from "../store/useConversation";
 import { useAuthContext } from "../context/AuthContext";
 import { useSocketContext } from "../context/SocketContext";
 
-const Converastion = ({ conversation }) => {
+const Converastion = ({ conversation, isClickable = true }) => {
   const { selectedConversation, setSelectedConversation } = useConversations();
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const isSelected = selectedConversation?._id === conversation._id;
@@ -122,10 +122,14 @@ const Converastion = ({ conversation }) => {
   return (
     <>
       <div
-        className={`flex gap-2 mb-2 items-center hover:bg-neutral transition-all duration-100 rounded p-2 cursor-pointer relative ${
+        className={`flex gap-2 mb-2 items-center hover:bg-neutral transition-all duration-100 rounded p-2 ${
+          isClickable ? "cursor-pointer" : ""
+        } relative ${
           isSelected ? "bg-neutral" : hasNewMessage ? "bg-green-900" : ""
         }`}
-        onClick={() => setSelectedConversation(conversation)}
+        onClick={
+          isClickable ? () => setSelectedConversation(conversation) : undefined
+        }
       >
         <div className={`avatar ${isOnline ? "online" : ""}`}>
           <div className="w-12 rounded-full">
@@ -161,6 +165,7 @@ Converastion.propTypes = {
     _id: PropTypes.string.isRequired,
     fullName: PropTypes.string.isRequired,
   }).isRequired,
+  isClickable: PropTypes.bool,
 };
 
 export default Converastion;

@@ -44,6 +44,13 @@ const shopSchema = new mongoose.Schema(
         default: "Europe/Belgrade",
       },
     },
+    // Warehouses this shop can communicate with for cross-shop requests
+    assignedWarehouses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Shop",
+      },
+    ],
     isActive: {
       type: Boolean,
       default: true,

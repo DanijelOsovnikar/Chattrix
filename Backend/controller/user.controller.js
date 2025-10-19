@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import Shop from "../models/shop.model.js";
+import Message from "../models/message.js";
 
 export const getUsersForSidebar = async (req, res) => {
   try {
@@ -20,10 +21,10 @@ export const getUsersForSidebar = async (req, res) => {
       query.shopId = userShopId;
       query.role = "warehouse";
     }
-    // Warehousemen can see all employees and other warehousemen in their shop
+    // Warehousemen can see only employees in their shop (not other warehousemen)
     else if (loggedInUser.role === "warehouseman") {
       query.shopId = userShopId;
-      query.role = { $in: ["employee", "warehouseman"] };
+      query.role = "employee";
     }
     // Employees can see only the warehouse user in their shop (not individual warehousemen)
     else if (loggedInUser.role === "employee") {
@@ -40,7 +41,50 @@ export const getUsersForSidebar = async (req, res) => {
       .select("-password -pushSubscription -__v")
       .sort({ fullName: 1 });
 
-    res.status(200).json(allUsers);
+    // For warehousemen, also include external shops they've received requests from
+    let externalShops = [];
+    if (loggedInUser.role === "warehouseman") {
+      // Find unique external shops that have sent requests to this warehouseman
+      const externalRequests = await Message.find({
+        receiverId: loggedInUser._id,
+        isExternalRequest: true,
+        targetWarehouseId: userShopId,
+      })
+        .populate("senderId", "shopId")
+        .populate({
+          path: "senderId",
+          populate: {
+            path: "shopId",
+            select: "name code",
+          },
+        });
+
+      // Extract unique external shops
+      const shopMap = new Map();
+      externalRequests.forEach((request) => {
+        if (request.senderId && request.senderId.shopId) {
+          const shop = request.senderId.shopId;
+          if (!shopMap.has(shop._id.toString())) {
+            shopMap.set(shop._id.toString(), {
+              _id: `external_shop_${shop._id}`,
+              fullName: shop.name,
+              code: shop.code,
+              isExternalShop: true,
+              externalShopId: shop._id,
+              userName: `external_${shop.code}`,
+              shopId: shop, // Keep the shop info
+            });
+          }
+        }
+      });
+
+      externalShops = Array.from(shopMap.values());
+    }
+
+    // Combine regular users and external shops
+    const allConversations = [...allUsers, ...externalShops];
+
+    res.status(200).json(allConversations);
   } catch (error) {
     // console.log("Error in getUsersForSidebar", error);
     res.status(500).json({ error: "Internal server error" });

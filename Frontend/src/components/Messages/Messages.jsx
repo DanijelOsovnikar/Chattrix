@@ -2,10 +2,11 @@ import { useEffect, useRef } from "react";
 import Message from "./Message";
 import useGetMessages from "../../context/hooks/useGetMessages";
 import useConversations from "../../store/useConversation";
+import TrackingView from "./TrackingView";
 
 const Messages = () => {
   useGetMessages(); // Still needed to fetch initial messages when conversation changes
-  const { messages } = useConversations(); // Get messages directly from Zustand store
+  const { messages, selectedConversation } = useConversations(); // Get messages directly from Zustand store
   const lastMessageRef = useRef();
 
   useEffect(() => {
@@ -13,6 +14,11 @@ const Messages = () => {
       lastMessageRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 300);
   }, [messages]);
+
+  // Check if this is the tracking view
+  if (selectedConversation?._id === "tracking_outgoing_requests") {
+    return <TrackingView messages={messages} />;
+  }
 
   return (
     <div className="px-4 flex-1 overflow-auto">

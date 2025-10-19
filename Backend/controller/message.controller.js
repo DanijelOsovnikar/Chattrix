@@ -1,6 +1,7 @@
 import Conversation from "../models/conversation.js";
 import Message from "../models/message.js";
 import User from "../models/user.model.js";
+import Shop from "../models/shop.model.js";
 import webPush from "web-push";
 import { getUserSocketMap } from "../socket/socket.js";
 
@@ -120,6 +121,12 @@ export const sendMessage = async (req, res) => {
       buyerName,
       opened,
       savaGodine,
+      // External request fields
+      isExternalRequest,
+      targetWarehouseId,
+      orderNumber,
+      orderDate,
+      externalStatus,
     } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id.toString();
@@ -127,6 +134,149 @@ export const sendMessage = async (req, res) => {
 
     // Get Socket.IO instance
     const io = req.io;
+
+    // Handle external warehouse conversation IDs (employees sending to external warehouses)
+    if (
+      receiverId.startsWith("external_") &&
+      !receiverId.startsWith("external_shop_")
+    ) {
+      const targetWarehouseId = receiverId.replace("external_", "");
+
+      // Automatically set this as an external request
+      return await handleExternalWarehouseRequest(req, res, {
+        messages,
+        sava,
+        sellerId,
+        senderUsername,
+        buyer,
+        buyerName,
+        opened,
+        savaGodine,
+        targetWarehouseId,
+        orderNumber:
+          orderNumber ||
+          `EXT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        orderDate: orderDate || new Date().toISOString(),
+        externalStatus: externalStatus || "pending",
+        senderId,
+        senderShopId,
+        io,
+      });
+    }
+
+    // Handle external shop conversation IDs (warehousemen sending messages back to external shops)
+    if (receiverId.startsWith("external_shop_")) {
+      const externalShopId = receiverId.replace("external_shop_", "");
+
+      // Only warehousemen can send messages to external shops
+      if (req.user.role !== "warehouseman") {
+        return res.status(403).json({
+          error: "Only warehousemen can send messages to external shops",
+        });
+      }
+
+      // Find employees in the external shop to send the message to
+      const externalEmployees = await User.find({
+        shopId: externalShopId,
+        role: { $in: ["employee", "admin", "manager"] },
+        isActive: true,
+      });
+
+      if (externalEmployees.length === 0) {
+        return res
+          .status(404)
+          .json({ error: "No active employees found in external shop" });
+      }
+
+      // Send message to all employees in the external shop
+      const createdMessages = [];
+      const sender = await User.findById(senderId);
+
+      for (const employee of externalEmployees) {
+        const responseMessage = new Message({
+          senderId,
+          receiverId: employee._id,
+          shopId: employee.shopId,
+          messages,
+          sava,
+          sellerId,
+          senderUsername,
+          buyer,
+          buyerName,
+          opened,
+          savaGodine,
+          gigaId: sender.gigaId,
+          isExternalRequest: false, // This is a response, not a new external request
+        });
+
+        await responseMessage.save();
+        createdMessages.push(responseMessage);
+
+        // Send real-time notification to employee
+        const userSocketMap = getUserSocketMap();
+        const employeeSocketId = userSocketMap[employee._id.toString()];
+
+        if (employeeSocketId) {
+          io.to(employeeSocketId).emit("newMessage", {
+            ...responseMessage.toObject(),
+            senderId: {
+              _id: sender._id,
+              fullName: sender.fullName,
+              userName: sender.userName,
+            },
+            receiverId: {
+              _id: employee._id,
+              fullName: employee.fullName,
+              userName: employee.userName,
+            },
+          });
+        }
+
+        // Create or update conversation with the employee
+        let conversation = await Conversation.findOne({
+          participants: { $all: [senderId, employee._id] },
+          shopId: employee.shopId,
+        });
+
+        if (!conversation) {
+          conversation = await Conversation.create({
+            participants: [senderId, employee._id],
+            shopId: employee.shopId,
+            messages: [],
+          });
+        }
+
+        conversation.messages.push(responseMessage._id);
+        await conversation.save();
+      }
+
+      return res.status(201).json({
+        message: "Message sent to external shop successfully",
+        sentTo: externalEmployees.length,
+        messageIds: createdMessages.map((msg) => msg._id),
+      });
+    }
+
+    // Handle external warehouse requests
+    if (isExternalRequest && targetWarehouseId) {
+      return await handleExternalWarehouseRequest(req, res, {
+        messages,
+        sava,
+        sellerId,
+        senderUsername,
+        buyer,
+        buyerName,
+        opened,
+        savaGodine,
+        targetWarehouseId,
+        orderNumber,
+        orderDate,
+        externalStatus,
+        senderId,
+        senderShopId,
+        io,
+      });
+    }
 
     //Find sender gigaId
     let senderGigaId;
@@ -712,7 +862,92 @@ export const getMessages = async (req, res) => {
     const { id: userToChatId } = req.params;
     const senderId = req.user._id.toString();
 
-    // Validate that both users exist and check shop permissions
+    // Handle tracking outgoing requests (for managers)
+    if (userToChatId === "tracking_outgoing_requests") {
+      return getOutgoingExternalRequests(req, res);
+    }
+
+    // Handle external warehouse conversations (employees sending to warehouses)
+    if (
+      userToChatId.startsWith("external_") &&
+      !userToChatId.startsWith("external_shop_")
+    ) {
+      const targetWarehouseId = userToChatId.replace("external_", "");
+
+      // Validate that the user's shop has access to this warehouse
+      const userShop = await Shop.findById(req.user.shopId);
+      const targetWarehouse = await Shop.findById(targetWarehouseId);
+
+      if (!targetWarehouse) {
+        return res.status(404).json({ error: "Target warehouse not found" });
+      }
+
+      // Check if this warehouse is assigned to the user's shop or if user is super_admin
+      const isAssigned =
+        userShop.assignedWarehouses &&
+        userShop.assignedWarehouses.some(
+          (warehouseId) => warehouseId.toString() === targetWarehouseId
+        );
+
+      if (!isAssigned && req.user.role !== "super_admin") {
+        return res
+          .status(403)
+          .json({ error: "Access to this warehouse not allowed" });
+      }
+
+      // Find external messages between this user and the target warehouse
+      const messages = await Message.find({
+        $or: [
+          {
+            senderId: senderId,
+            isExternalRequest: true,
+            targetWarehouseId: targetWarehouseId,
+          },
+          {
+            receiverId: senderId,
+            isExternalRequest: true,
+            targetWarehouseId: targetWarehouseId,
+          },
+        ],
+      })
+        .populate("senderId receiverId", "fullName shopId")
+        .sort({ createdAt: 1 });
+
+      return res.status(200).json(messages);
+    }
+
+    // Handle external shop conversations (warehousemen viewing messages from external shops)
+    if (userToChatId.startsWith("external_shop_")) {
+      const externalShopId = userToChatId.replace("external_shop_", "");
+
+      // Only warehousemen can view external shop conversations
+      if (req.user.role !== "warehouseman") {
+        return res.status(403).json({
+          error: "Only warehousemen can view external shop conversations",
+        });
+      }
+
+      // Find all external messages from this shop to this warehouseman
+      const messages = await Message.find({
+        receiverId: senderId,
+        isExternalRequest: true,
+        targetWarehouseId: req.user.shopId,
+      })
+        .populate({
+          path: "senderId",
+          match: { shopId: externalShopId },
+          select: "fullName shopId userName",
+        })
+        .populate("receiverId", "fullName shopId")
+        .sort({ createdAt: 1 });
+
+      // Filter out messages where sender doesn't match the shop
+      const filteredMessages = messages.filter((msg) => msg.senderId);
+
+      return res.status(200).json(filteredMessages);
+    }
+
+    // Handle regular internal conversations
     const [sender, receiver] = await Promise.all([
       User.findById(senderId),
       User.findById(userToChatId),
@@ -750,7 +985,7 @@ export const getMessages = async (req, res) => {
 
     res.status(200).json(messages);
   } catch (error) {
-    // console.log("Error in getMessages controller", error);
+    console.log("Error in getMessages controller", error);
     res.status(500).json({ error: "Internal server error!" });
   }
 };
@@ -835,6 +1070,346 @@ export const updateMessageStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in updateMessageStatus:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Handle external warehouse requests (cross-shop communication)
+// Update external request status
+export const updateExternalRequestStatus = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { status, notes } = req.body;
+    const warehousemanId = req.user._id;
+
+    // Validate status
+    const validStatuses = ["pending", "sending", "keeping", "rejected"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+
+    // Find the external request message
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    if (!message.isExternalRequest) {
+      return res.status(400).json({ error: "This is not an external request" });
+    }
+
+    // Verify warehouseman has permission (same shop as target warehouse)
+    if (req.user.shopId.toString() !== message.shopId.toString()) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Update the message status
+    message.externalStatus = status;
+    message.lastUpdateDate = new Date();
+
+    // Add to status history
+    message.statusHistory.push({
+      status,
+      updatedBy: warehousemanId,
+      updatedAt: new Date(),
+      notes: notes || `Status updated to ${status}`,
+    });
+
+    await message.save();
+
+    // Send real-time update to the original sender
+    const io = req.io;
+    const userSocketMap = getUserSocketMap();
+    const senderSocketId = userSocketMap[message.senderId.toString()];
+
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("externalRequestUpdate", {
+        messageId: message._id,
+        status,
+        updatedBy: req.user.fullName,
+        updatedAt: new Date(),
+        notes,
+      });
+    }
+
+    res.status(200).json({
+      message: "External request status updated successfully",
+      status,
+      updatedBy: req.user.fullName,
+    });
+  } catch (error) {
+    console.error("Error updating external request status:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Get outgoing external requests for managers to track
+export const getOutgoingExternalRequests = async (req, res) => {
+  try {
+    // Only managers, admins, and super_admins can access this endpoint
+    if (
+      req.user.role !== "manager" &&
+      req.user.role !== "admin" &&
+      req.user.role !== "super_admin"
+    ) {
+      return res
+        .status(403)
+        .json({
+          error:
+            "Only managers, admins, or super_admins can track outgoing requests",
+        });
+    }
+
+    const managerShopId = req.user.shopId;
+
+    // Find all users from this shop
+    const shopUsers = await User.find({ shopId: managerShopId }).distinct(
+      "_id"
+    );
+
+    // Find all external requests SENT FROM this shop (outgoing)
+    const outgoingRequests = await Message.find({
+      isExternalRequest: true,
+      senderId: { $in: shopUsers },
+    })
+      .populate("senderId", "fullName userName role shopId")
+      .populate("receiverId", "fullName userName shopId")
+      .sort({ createdAt: -1 });
+
+    // Find all external requests RECEIVED BY this shop (incoming)
+    const incomingRequests = await Message.find({
+      isExternalRequest: true,
+      receiverId: { $in: shopUsers },
+    })
+      .populate("senderId", "fullName userName role shopId")
+      .populate("receiverId", "fullName userName shopId")
+      .sort({ createdAt: -1 });
+
+    console.log("� Found outgoing requests:", outgoingRequests.length);
+    console.log("� Found incoming requests:", incomingRequests.length);
+
+    // Combine and mark request direction
+    const allRequests = [
+      ...outgoingRequests.map((req) => ({
+        ...req.toObject(),
+        direction: "outgoing",
+      })),
+      ...incomingRequests.map((req) => ({
+        ...req.toObject(),
+        direction: "incoming",
+      })),
+    ];
+
+    // Sort by creation date (newest first)
+    allRequests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.status(200).json(allRequests);
+  } catch (error) {
+    console.error("Error in getOutgoingExternalRequests:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const handleExternalWarehouseRequest = async (req, res, params) => {
+  try {
+    console.log("🚀 handleExternalWarehouseRequest called with params:", {
+      targetWarehouseId: params.targetWarehouseId,
+      senderId: params.senderId,
+      senderShopId: params.senderShopId,
+      messages: params.messages,
+    });
+
+    const {
+      messages,
+      sava,
+      sellerId,
+      senderUsername,
+      buyer,
+      buyerName,
+      opened,
+      savaGodine,
+      targetWarehouseId,
+      orderNumber,
+      orderDate,
+      externalStatus,
+      senderId,
+      senderShopId,
+      io,
+    } = params;
+
+    // Verify the target warehouse exists and sender's shop has permission
+    const senderShop = await Shop.findById(senderShopId).populate(
+      "assignedWarehouses"
+    );
+    const targetWarehouse = await Shop.findById(targetWarehouseId);
+
+    if (!targetWarehouse) {
+      return res.status(404).json({ error: "Target warehouse not found" });
+    }
+
+    if (!senderShop) {
+      return res.status(404).json({ error: "Sender shop not found" });
+    }
+
+    // Check if sender's shop has permission to communicate with target warehouse
+    const hasPermission = senderShop.assignedWarehouses.some(
+      (warehouse) => warehouse._id.toString() === targetWarehouseId
+    );
+
+    if (!hasPermission) {
+      return res.status(403).json({
+        error: "Your shop is not authorized to communicate with this warehouse",
+      });
+    }
+
+    // Find warehousemen in the target warehouse
+    const warehousemen = await User.find({
+      shopId: targetWarehouseId,
+      role: "warehouseman",
+      isActive: true,
+    });
+
+    if (warehousemen.length === 0) {
+      return res.status(404).json({
+        error: "No active warehousemen found in target warehouse",
+      });
+    }
+
+    // Get sender info
+    const sender = await User.findById(senderId);
+    if (!sender) {
+      return res.status(404).json({ error: "Sender not found" });
+    }
+
+    // Generate a unique order number if not provided
+    const finalOrderNumber =
+      orderNumber ||
+      `EXT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Create external request message for each warehouseman
+    const createdMessages = [];
+
+    for (const warehouseman of warehousemen) {
+      const externalMessage = new Message({
+        senderId,
+        receiverId: warehouseman._id,
+        shopId: targetWarehouseId, // Message belongs to target warehouse's shop context
+        messages,
+        sava,
+        sellerId,
+        senderUsername,
+        buyer,
+        buyerName,
+        opened,
+        savaGodine,
+        gigaId: sender.gigaId,
+        // External request specific fields
+        isExternalRequest: true,
+        targetWarehouseId,
+        orderNumber: finalOrderNumber,
+        orderDate: new Date(orderDate),
+        externalStatus: externalStatus || "pending",
+        lastUpdateDate: new Date(),
+        statusHistory: [
+          {
+            status: externalStatus || "pending",
+            updatedBy: senderId,
+            updatedAt: new Date(),
+            notes: `External request from ${senderShop.name} to ${targetWarehouse.name}`,
+          },
+        ],
+      });
+
+      await externalMessage.save();
+      createdMessages.push(externalMessage);
+
+      // Create or update conversation with the warehouseman
+      let conversation = await Conversation.findOne({
+        participants: { $all: [senderId, warehouseman._id] },
+        shopId: targetWarehouseId,
+      });
+
+      if (!conversation) {
+        conversation = await Conversation.create({
+          participants: [senderId, warehouseman._id],
+          shopId: targetWarehouseId,
+          messages: [],
+        });
+      }
+
+      conversation.messages.push(externalMessage._id);
+      await conversation.save();
+
+      // Send real-time notification to warehouseman
+      const userSocketMap = getUserSocketMap();
+      const warehousemanSocketId = userSocketMap[warehouseman._id.toString()];
+
+      if (warehousemanSocketId) {
+        io.to(warehousemanSocketId).emit("newMessage", {
+          ...externalMessage.toObject(),
+          senderId: {
+            _id: sender._id,
+            fullName: sender.fullName,
+            userName: sender.userName,
+          },
+          receiverId: {
+            _id: warehouseman._id,
+            fullName: warehouseman.fullName,
+            userName: warehouseman.userName,
+          },
+        });
+      }
+
+      // Send push notification to warehouseman (ALWAYS send for external requests)
+      if (warehouseman.pushSubscription) {
+        try {
+          webPush.setVapidDetails(
+            "mailto:danijel.osovnikar@gmail.com",
+            "BEvmu6KRMuMBPD7xWEYeTQvOfw-TNTns8R0xifdmq1Y89gJql2-W_17TvHGU6HnusR4SlQqvMgbY8d--FUHvc4w",
+            process.env.PRIVATE_VAPID_KEY
+          );
+
+          const pushPayload = {
+            title: `New External Request - ${senderShop.name}`,
+            body: `Order #${finalOrderNumber} from ${sender.fullName}`,
+            icon: "/icon-192x192.png",
+            badge: "/badge-72x72.png",
+            data: {
+              messageId: externalMessage._id,
+              senderId: sender._id,
+              senderName: sender.fullName,
+              orderNumber: finalOrderNumber,
+              fromShop: senderShop.name,
+              type: "external_request",
+            },
+          };
+
+          await webPush.sendNotification(
+            warehouseman.pushSubscription,
+            JSON.stringify(pushPayload)
+          );
+
+          console.log(
+            `✅ External request notification sent to ${warehouseman.fullName} at ${targetWarehouse.name}`
+          );
+        } catch (pushError) {
+          console.error(
+            "❌ External request push notification failed:",
+            pushError
+          );
+        }
+      }
+    }
+
+    res.status(201).json({
+      message: "External warehouse request sent successfully",
+      orderNumber: finalOrderNumber,
+      targetWarehouse: targetWarehouse.name,
+      sentTo: warehousemen.length,
+      messageIds: createdMessages.map((msg) => msg._id),
+    });
+  } catch (error) {
+    console.error("Error in handleExternalWarehouseRequest:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };

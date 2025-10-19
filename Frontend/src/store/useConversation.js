@@ -20,6 +20,9 @@ const useConversations = create((set) => ({
   setScannerResultKupac: (scannerResultKupac) => set({ scannerResultKupac }),
   qrCodeKupac: false,
   setQrCodeKupac: (qrCodeKupac) => set({ qrCodeKupac }),
+  // External warehouse state
+  isExternalWarehouse: false,
+  setIsExternalWarehouse: (isExternalWarehouse) => set({ isExternalWarehouse }),
 }));
 
 export default useConversations;

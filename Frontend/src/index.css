@@ -115,7 +115,6 @@ input[type="text"] {
 
   .convCLass {
     overflow: auto;
-    max-height: 144px;
     scrollbar-width: none;
   }
 

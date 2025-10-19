@@ -26,7 +26,18 @@ const useSendMessage = () => {
         throw new Error(data.error);
       }
 
-      setMessages([...messages, data.message]);
+      // For external requests, the backend returns a different structure
+      // Don't add anything to messages - the real message will come via socket
+      if (selectedConversation._id.startsWith("external_")) {
+        toast.success(data.message || "External request sent successfully");
+        // Let the socket listener handle adding the real message
+        return;
+      }
+
+      // For regular internal messages, add the returned message
+      if (data.message && typeof data.message === "object") {
+        setMessages([...messages, data.message]);
+      }
     } catch (error) {
       toast.error(error.message);
     } finally {
