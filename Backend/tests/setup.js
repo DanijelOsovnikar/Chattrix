@@ -3,6 +3,10 @@ import mongoose from "mongoose";
 
 let mongoServer;
 
+// Set up environment variables for testing
+process.env.JWT_SECRET = "test-jwt-secret-key-for-testing";
+process.env.NODE_ENV = "test";
+
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const mongoUri = mongoServer.getUri();

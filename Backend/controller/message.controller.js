@@ -613,6 +613,11 @@ export const checkedMessage = async (req, res) => {
       { new: true }
     ).populate("senderId", "fullName pushSubscription notificationPreferences");
 
+    // Check if message exists
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
     // Send notification to the employee who sent the request
     if (message && message.senderId) {
       // console.log("🔔 Sending item ready notification for message:", messageId);
@@ -747,6 +752,11 @@ export const uncheckMessage = async (req, res) => {
       { opened: false },
       { new: true }
     ).populate("senderId", "fullName pushSubscription notificationPreferences");
+
+    // Check if message exists
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
 
     // Send notification to the employee who sent the request
     if (message && message.senderId) {
@@ -1152,12 +1162,10 @@ export const getOutgoingExternalRequests = async (req, res) => {
       req.user.role !== "admin" &&
       req.user.role !== "super_admin"
     ) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "Only managers, admins, or super_admins can track outgoing requests",
-        });
+      return res.status(403).json({
+        error:
+          "Only managers, admins, or super_admins can track outgoing requests",
+      });
     }
 
     const managerShopId = req.user.shopId;

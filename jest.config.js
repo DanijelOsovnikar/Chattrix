@@ -9,4 +9,7 @@ export default {
     "!Backend/tests/**",
   ],
   coverageDirectory: "coverage",
+  moduleNameMapper: {
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+  },
 };
