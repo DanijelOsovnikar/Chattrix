@@ -46,7 +46,8 @@ app.use(
 
       if (
         allowedOrigins.indexOf(origin) !== -1 ||
-        process.env.NODE_ENV === "development"
+        process.env.NODE_ENV === "development" ||
+        process.env.NODE_ENV === "staging"
       ) {
         callback(null, true);
       } else {
