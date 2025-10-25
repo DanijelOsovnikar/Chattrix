@@ -78,6 +78,55 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    // Cross-shop communication fields
+    isExternalRequest: {
+      type: Boolean,
+      default: false,
+    },
+    targetWarehouseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Shop",
+    },
+    orderNumber: {
+      type: String,
+    },
+    orderDate: {
+      type: Date,
+      default: Date.now,
+    },
+    lastUpdateDate: {
+      type: Date,
+      default: Date.now,
+    },
+    externalStatus: {
+      type: String,
+      enum: ["pending", "sending", "keeping", "rejected"],
+      default: "pending",
+    },
+    externalAction: {
+      type: String,
+      enum: ["send", "keep"],
+      default: "send",
+    },
+    statusHistory: [
+      {
+        status: {
+          type: String,
+          enum: ["pending", "sending", "keeping", "rejected"],
+        },
+        updatedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        updatedAt: {
+          type: Date,
+          default: Date.now,
+        },
+        notes: {
+          type: String,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

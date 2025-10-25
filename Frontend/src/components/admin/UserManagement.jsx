@@ -80,6 +80,16 @@ const UserManagement = () => {
     fetchUsers(1); // Always start from page 1 when filters change
   }, [fetchUsers]);
 
+  // Helper: For warehouseman, show admins and managers with employees
+  const getVisibleUsers = () => {
+    if (authUser?.role === "warehouseman") {
+      return users.filter((user) =>
+        ["employee", "admin", "manager"].includes(user.role)
+      );
+    }
+    return users;
+  };
+
   // Fetch shops for super admin
   const fetchShops = useCallback(async () => {
     if (authUser.role !== "super_admin") return;
@@ -626,7 +636,7 @@ const UserManagement = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((user) => (
+                    {getVisibleUsers().map((user) => (
                       <tr
                         key={user._id}
                         className={`hover ${
@@ -757,7 +767,7 @@ const UserManagement = () => {
               {/* Mobile Card Layout */}
               {/* Mobile Card Layout */}
               <div className="sm:hidden space-y-4">
-                {users.map((user) => (
+                {getVisibleUsers().map((user) => (
                   <div
                     key={user._id}
                     className={`card bg-base-200 ${

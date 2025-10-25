@@ -4,7 +4,12 @@ import { useFormContext } from "react-hook-form";
 import PropTypes from "prop-types";
 import useConversations from "../../store/useConversation";
 
-const MainInputFields = ({ index, onRemove, canDelete }) => {
+const MainInputFields = ({
+  index,
+  onRemove,
+  canDelete,
+  isExternalRequest = false,
+}) => {
   const { register, setValue, watch } = useFormContext();
   const {
     setQrCode,
@@ -91,66 +96,70 @@ const MainInputFields = ({ index, onRemove, canDelete }) => {
         ))}
       </select>
 
-      {/* Pack radio buttons */}
-      <fieldset className="my-2">
-        <div className="flex justify-between items-center">
-          <legend className="text-sm font-medium text-base-content">
-            Treba da se spakuje proizvod
-          </legend>
-          <div className="flex gap-4">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                {...register(`messages.${index}.pack`)}
-                value="true"
-                className="radio radio-primary mr-2"
-              />
-              <span className="text-sm">Da</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                {...register(`messages.${index}.pack`)}
-                value="false"
-                className="radio radio-primary mr-2"
-              />
-              <span className="text-sm">Ne</span>
-            </label>
+      {/* Pack radio buttons - only show for internal requests */}
+      {!isExternalRequest && (
+        <fieldset className="my-2">
+          <div className="flex justify-between items-center">
+            <legend className="text-sm font-medium text-base-content">
+              Treba da se spakuje proizvod
+            </legend>
+            <div className="flex gap-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  {...register(`messages.${index}.pack`)}
+                  value="true"
+                  className="radio radio-primary mr-2"
+                />
+                <span className="text-sm">Da</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  {...register(`messages.${index}.pack`)}
+                  value="false"
+                  className="radio radio-primary mr-2"
+                />
+                <span className="text-sm">Ne</span>
+              </label>
+            </div>
           </div>
-        </div>
-      </fieldset>
+        </fieldset>
+      )}
 
-      {/* Rez radio buttons */}
-      <fieldset className="my-2">
-        <div className="flex justify-between items-center">
-          <legend className="text-sm font-medium text-base-content">
-            Vec odvojen na rezervaciji
-          </legend>
-          <div className="flex gap-4">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                {...register(`messages.${index}.rez`)}
-                value="true"
-                className="radio radio-primary mr-2"
-              />
-              <span className="text-sm">Da</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                {...register(`messages.${index}.rez`)}
-                value="false"
-                className="radio radio-primary mr-2"
-              />
-              <span className="text-sm">Ne</span>
-            </label>
+      {/* Rez radio buttons - only show for internal requests */}
+      {!isExternalRequest && (
+        <fieldset className="my-2">
+          <div className="flex justify-between items-center">
+            <legend className="text-sm font-medium text-base-content">
+              Vec odvojen na rezervaciji
+            </legend>
+            <div className="flex gap-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  {...register(`messages.${index}.rez`)}
+                  value="true"
+                  className="radio radio-primary mr-2"
+                />
+                <span className="text-sm">Da</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  {...register(`messages.${index}.rez`)}
+                  value="false"
+                  className="radio radio-primary mr-2"
+                />
+                <span className="text-sm">Ne</span>
+              </label>
+            </div>
           </div>
-        </div>
-      </fieldset>
+        </fieldset>
+      )}
 
-      {/* Conditional Web field - only show when rez is "true" */}
-      {currentRez === "true" && (
+      {/* Conditional Web field - only show when rez is "true" and not external request */}
+      {!isExternalRequest && currentRez === "true" && (
         <div className="my-2">
           <input
             type="text"
@@ -181,6 +190,7 @@ MainInputFields.propTypes = {
   index: PropTypes.number.isRequired,
   onRemove: PropTypes.func.isRequired,
   canDelete: PropTypes.bool.isRequired,
+  isExternalRequest: PropTypes.bool,
 };
 
 export default MainInputFields;

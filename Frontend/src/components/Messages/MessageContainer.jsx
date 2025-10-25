@@ -3,10 +3,14 @@ import Messages from "./Messages";
 import MessageInput from "./MessageInput";
 import useConversations from "../../store/useConversation";
 import { useAuthContext } from "../../context/AuthContext";
+import useListenMessages from "../../context/hooks/useListenMessages";
 import useListenMessageStatusSync from "../../context/hooks/useListenMessageStatusSync";
 
 const MessageContainer = () => {
   const { selectedConversation, setSelectedConversation } = useConversations();
+
+  // Enable real-time message listening
+  useListenMessages();
 
   // Enable real-time checkbox synchronization for warehousemen
   useListenMessageStatusSync();

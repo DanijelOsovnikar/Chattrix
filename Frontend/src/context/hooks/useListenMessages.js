@@ -52,10 +52,38 @@ const useListenMessages = () => {
         setConversations(updatedConversations);
       }
 
-      const isForCurrentConversation =
-        selectedConversation &&
-        (selectedConversation._id === senderId ||
-          selectedConversation._id === receiverId);
+      // Handle external conversation matching
+      let isForCurrentConversation = false;
+
+      if (selectedConversation) {
+        if (selectedConversation._id.startsWith("external_")) {
+          // For external warehouse conversations, check if this message is an external request
+          // to the warehouse ID extracted from the conversation ID
+          const targetWarehouseId = selectedConversation._id.replace(
+            "external_",
+            ""
+          );
+          isForCurrentConversation =
+            newMessage.isExternalRequest &&
+            newMessage.targetWarehouseId === targetWarehouseId;
+        } else if (selectedConversation._id.startsWith("external_shop_")) {
+          // For external shop conversations (warehousemen viewing shop requests)
+          const externalShopId = selectedConversation._id.replace(
+            "external_shop_",
+            ""
+          );
+          isForCurrentConversation =
+            newMessage.isExternalRequest &&
+            (typeof newMessage.senderId === "object"
+              ? newMessage.senderId.shopId === externalShopId
+              : false);
+        } else {
+          // Regular internal conversations
+          isForCurrentConversation =
+            selectedConversation._id === senderId ||
+            selectedConversation._id === receiverId;
+        }
+      }
 
       if (isForCurrentConversation) {
         const store = useConversations.getState();
