@@ -127,6 +127,7 @@ export const sendMessage = async (req, res) => {
       orderNumber,
       orderDate,
       externalStatus,
+      externalAction,
     } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id.toString();
@@ -158,6 +159,7 @@ export const sendMessage = async (req, res) => {
           `EXT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         orderDate: orderDate || new Date().toISOString(),
         externalStatus: externalStatus || "pending",
+        externalAction: externalAction || "send",
         senderId,
         senderShopId,
         io,
@@ -1240,6 +1242,7 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
       orderNumber,
       orderDate,
       externalStatus,
+      externalAction,
       senderId,
       senderShopId,
       io,
@@ -1317,6 +1320,7 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
         orderNumber: finalOrderNumber,
         orderDate: new Date(orderDate),
         externalStatus: externalStatus || "pending",
+        externalAction: externalAction || "send",
         lastUpdateDate: new Date(),
         statusHistory: [
           {

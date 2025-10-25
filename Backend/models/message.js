@@ -103,6 +103,11 @@ const messageSchema = new mongoose.Schema(
       enum: ["pending", "sending", "keeping", "rejected"],
       default: "pending",
     },
+    externalAction: {
+      type: String,
+      enum: ["send", "keep"],
+      default: "send",
+    },
     statusHistory: [
       {
         status: {

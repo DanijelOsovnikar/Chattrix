@@ -465,7 +465,21 @@ const Message = ({ message }) => {
                 📅 Date: {new Date(message.orderDate).toLocaleDateString()}
               </div>
               <div>
-                📍 Status:
+                � Action:{" "}
+                <span
+                  className={`ml-1 px-2 py-0.5 rounded text-xs font-bold ${
+                    message.externalAction === "send"
+                      ? "bg-blue-600 text-blue-100"
+                      : "bg-purple-600 text-purple-100"
+                  }`}
+                >
+                  {message.externalAction === "send"
+                    ? "SEND TO SHOP"
+                    : "KEEP FOR PICKUP"}
+                </span>
+              </div>
+              <div>
+                �📍 Status:
                 <span
                   className={`ml-1 px-2 py-0.5 rounded text-xs font-bold ${
                     message.externalStatus === "pending"
@@ -601,6 +615,7 @@ Message.propTypes = {
     orderNumber: PropTypes.string,
     orderDate: PropTypes.string,
     externalStatus: PropTypes.string,
+    externalAction: PropTypes.string,
     lastUpdateDate: PropTypes.string,
   }).isRequired,
 };

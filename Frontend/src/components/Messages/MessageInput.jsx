@@ -34,6 +34,7 @@ const MessageInput = () => {
       ime: "",
       savaGodine: "",
       sava: "false",
+      externalAction: "send", // Default to "send"
     },
   });
 
@@ -114,6 +115,7 @@ const MessageInput = () => {
             .substr(2, 9)}`, // Auto-generate order number
           orderDate: new Date().toISOString(),
           externalStatus: "pending",
+          externalAction: data.externalAction, // Add the action field
         }
       : baseMessage;
 
@@ -132,6 +134,7 @@ const MessageInput = () => {
       ime: "",
       savaGodine: "",
       sava: "false",
+      externalAction: "send", // Reset to default
     });
   };
 
@@ -186,6 +189,32 @@ const MessageInput = () => {
                   isExternalRequest={isExternalWarehouse}
                 />
               ))}
+
+              {/* External action selector - only show for external requests */}
+              {isExternalWarehouse && (
+                <div className="my-4 bg-base-100 border border-primary rounded-lg p-4">
+                  <label
+                    htmlFor="externalAction"
+                    className="block text-sm font-medium mb-2 text-base-content"
+                  >
+                    Request Type <span className="text-error">*</span>
+                  </label>
+                  <select
+                    id="externalAction"
+                    {...control.register("externalAction")}
+                    className="select select-bordered w-full bg-base-100 text-base-content border-primary focus:outline-primary"
+                  >
+                    <option value="send">Send to our shop</option>
+                    <option value="keep">Keep for customer pickup</option>
+                  </select>
+                  <p className="text-xs mt-2 text-base-content/70">
+                    {watch("externalAction") === "send"
+                      ? "Items will be sent to your shop"
+                      : "Items will be kept at the warehouse for customer pickup"}
+                  </p>
+                </div>
+              )}
+
               <div className="groupInputQr">
                 <input
                   type="text"
