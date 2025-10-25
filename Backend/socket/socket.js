@@ -13,6 +13,12 @@ const server = http.createServer(app);
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? [process.env.FRONTEND_URL || "https://your-production-domain.com"]
+    : process.env.NODE_ENV === "staging"
+    ? [
+        process.env.FRONTEND_URL || "https://your-staging-domain.com",
+        "http://localhost:5173",
+        "http://localhost:5174",
+      ]
     : ["http://localhost:5173", "http://localhost:5174"];
 
 const io = new Server(server, {
@@ -23,7 +29,7 @@ const io = new Server(server, {
 
       if (
         allowedOrigins.indexOf(origin) !== -1 ||
-        process.env.NODE_ENV !== "production"
+        process.env.NODE_ENV === "development"
       ) {
         callback(null, true);
       } else {
