@@ -24,15 +24,24 @@ const allowedOrigins =
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
+      console.log("🔌 Socket.IO request from origin:", origin);
+
       // Allow requests with no origin (like mobile apps or Postman)
       if (!origin) return callback(null, true);
 
+      // For staging and development, be more permissive
       if (
-        allowedOrigins.indexOf(origin) !== -1 ||
-        process.env.NODE_ENV === "development"
+        process.env.NODE_ENV === "development" ||
+        process.env.NODE_ENV === "staging"
       ) {
+        return callback(null, true);
+      }
+
+      // For production, check allowed origins
+      if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
+        console.error("❌ Socket.IO CORS blocked origin:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },

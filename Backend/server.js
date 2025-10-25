@@ -41,16 +41,24 @@ const allowedOrigins =
 app.use(
   cors({
     origin: (origin, callback) => {
+      console.log("📨 Request origin:", origin);
+
       // Allow requests with no origin (like mobile apps or Postman)
       if (!origin) return callback(null, true);
 
+      // For staging and development, be more permissive
       if (
-        allowedOrigins.indexOf(origin) !== -1 ||
         process.env.NODE_ENV === "development" ||
         process.env.NODE_ENV === "staging"
       ) {
+        return callback(null, true);
+      }
+
+      // For production, check allowed origins
+      if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
+        console.error("❌ CORS blocked origin:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
