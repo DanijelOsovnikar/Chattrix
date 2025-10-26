@@ -80,11 +80,11 @@ const UserManagement = () => {
     fetchUsers(1); // Always start from page 1 when filters change
   }, [fetchUsers]);
 
-  // Helper: For warehouseman, show admins and managers with employees
+  // Helper: For warehouseman, show admins, managers, cashiers with employees
   const getVisibleUsers = () => {
     if (authUser?.role === "warehouseman") {
       return users.filter((user) =>
-        ["employee", "admin", "manager"].includes(user.role)
+        ["employee", "cashier", "admin", "manager"].includes(user.role)
       );
     }
     return users;
@@ -121,6 +121,7 @@ const UserManagement = () => {
   const getRolePermissions = (role) => {
     const rolePermissions = {
       employee: ["send_messages"],
+      cashier: ["send_messages"],
       warehouseman: [
         "receive_messages",
         "update_status",
@@ -345,8 +346,8 @@ const UserManagement = () => {
 
   const availableRoles =
     authUser.role === "super_admin"
-      ? ["employee", "warehouseman", "admin", "super_admin"]
-      : ["employee", "warehouseman"];
+      ? ["employee", "warehouseman", "cashier", "admin", "super_admin"]
+      : ["employee", "warehouseman", "cashier"];
 
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">

@@ -177,17 +177,19 @@ export const sendMessage = async (req, res) => {
         });
       }
 
-      // Find employees in the external shop to send the message to
+      // Find employees and cashiers in the external shop to send the message to
       const externalEmployees = await User.find({
         shopId: externalShopId,
-        role: { $in: ["employee", "admin", "manager"] },
+        role: { $in: ["employee", "cashier", "admin", "manager"] },
         isActive: true,
       });
 
       if (externalEmployees.length === 0) {
         return res
           .status(404)
-          .json({ error: "No active employees found in external shop" });
+          .json({
+            error: "No active employees/cashiers found in external shop",
+          });
       }
 
       // Send message to all employees in the external shop
@@ -310,7 +312,7 @@ export const sendMessage = async (req, res) => {
     // Check if this is a message to warehouse user (should be forwarded to warehousemen)
     if (
       receiver.role === "warehouse" &&
-      ["employee", "admin", "manager"].includes(req.user.role)
+      ["employee", "cashier", "admin", "manager"].includes(req.user.role)
     ) {
       // console.log(
       //   `🏭 WAREHOUSE REQUEST DETECTED - Forwarding to warehousemen...`
@@ -1282,15 +1284,16 @@ export const updateExternalRequestNalog = async (req, res) => {
 // Get outgoing external requests for managers to track
 export const getOutgoingExternalRequests = async (req, res) => {
   try {
-    // Only managers, admins, and super_admins can access this endpoint
+    // Only managers, admins, cashiers, and super_admins can access this endpoint
     if (
       req.user.role !== "manager" &&
       req.user.role !== "admin" &&
+      req.user.role !== "cashier" &&
       req.user.role !== "super_admin"
     ) {
       return res.status(403).json({
         error:
-          "Only managers, admins, or super_admins can track outgoing requests",
+          "Only managers, admins, cashiers, or super_admins can track outgoing requests",
       });
     }
 

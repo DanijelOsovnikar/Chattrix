@@ -78,16 +78,17 @@ function checkPasswordChangePermission(
     return false;
   }
 
-  // Admin can change their own password and employees/warehousemen/managers passwords
+  // Admin can change their own password and employees/warehousemen/cashiers/managers passwords
   if (requesterRole === "admin") {
     // Can change own password
     if (requesterId === targetId) {
       return true;
     }
-    // Can change employee, warehouseman, and manager passwords
+    // Can change employee, warehouseman, cashier, and manager passwords
     if (
       targetRole === "employee" ||
       targetRole === "warehouseman" ||
+      targetRole === "cashier" ||
       targetRole === "manager"
     ) {
       return true;
@@ -100,8 +101,12 @@ function checkPasswordChangePermission(
     return requesterId === targetId;
   }
 
-  // Employees and warehousemen cannot change passwords (including their own)
-  if (requesterRole === "employee" || requesterRole === "warehouseman") {
+  // Employees, cashiers, and warehousemen cannot change passwords (including their own)
+  if (
+    requesterRole === "employee" ||
+    requesterRole === "warehouseman" ||
+    requesterRole === "cashier"
+  ) {
     return false;
   }
 
@@ -130,13 +135,13 @@ export const getUsersForPasswordChange = async (req, res) => {
         .populate("shopId", "name");
       console.log("Super admin - found users:", users.length); // Debug log
     } else if (requesterRole === "admin") {
-      // Admin can change passwords for themselves, employees, warehousemen, and managers in their shop
+      // Admin can change passwords for themselves, employees, warehousemen, cashiers, and managers in their shop
       users = await User.find({
         $or: [
           { _id: requesterId }, // Their own account
           {
             shopId: requesterShopId,
-            role: { $in: ["employee", "warehouseman", "manager"] },
+            role: { $in: ["employee", "warehouseman", "cashier", "manager"] },
           },
         ],
       })

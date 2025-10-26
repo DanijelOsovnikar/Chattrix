@@ -291,9 +291,10 @@ const Conversations = () => {
         </div>
       )}
 
-      {/* External Request Tracking (for managers, admins, and super_admins) */}
+      {/* External Request Tracking (for managers, admins, cashiers, and super_admins) */}
       {(authUser?.role === "manager" ||
         authUser?.role === "admin" ||
+        authUser?.role === "cashier" ||
         authUser?.role === "super_admin") && (
         <div className="mb-4">
           <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-base-content/70 bg-base-200/50 rounded">

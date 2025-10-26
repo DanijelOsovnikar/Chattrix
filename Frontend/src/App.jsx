@@ -51,7 +51,9 @@ function App() {
         return "/admin"; // Admin gets admin panel by default, but can access messages
       case "warehouseman":
       case "employee":
-        return "/"; // Warehouse and employee only get messages
+      case "cashier":
+      case "manager":
+        return "/"; // Warehouseman, employee, cashier, and manager get messages
       default:
         return "/";
     }
@@ -68,7 +70,7 @@ function App() {
               ["super_admin", "admin"].includes(authUser.role) ? (
                 <Navigate to="/admin" />
               ) : (
-                // Only warehouseman and employee get standalone messaging
+                // Warehouseman, employee, cashier, and manager get standalone messaging
                 <Home />
               )
             ) : (
