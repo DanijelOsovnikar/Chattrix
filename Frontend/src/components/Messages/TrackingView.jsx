@@ -234,6 +234,14 @@ const TrackingView = ({ messages }) => {
                     <strong>Order Number:</strong>{" "}
                     {request.orderNumber || "N/A"}
                   </div>
+                  {request.nalog && (
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      <strong>📋 Nalog:</strong>{" "}
+                      <span className="text-green-600 dark:text-green-400 font-semibold">
+                        {request.nalog}
+                      </span>
+                    </div>
+                  )}
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                     <strong>Buyer:</strong> {request.buyer || "N/A"}
                   </div>
