@@ -493,6 +493,14 @@ export const sendMessage = async (req, res) => {
         });
       }
 
+      // Emit socket event to SENDER (employee) so they see their own message immediately
+      const senderSockets = userSocketMap[senderId];
+      if (senderSockets && senderSockets.length > 0) {
+        senderSockets.forEach((socketInfo) => {
+          io.to(socketInfo.socketId).emit("newMessage", populatedMessage);
+        });
+      }
+
       return res.status(201).json({ message: populatedMessage });
     }
 
@@ -1352,12 +1360,12 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
       conversation.messages.push(externalMessage._id);
       await conversation.save();
 
-      // Send real-time notification to warehouseman
+      // Send real-time notification to warehouseman (to ALL their connected devices)
       const userSocketMap = getUserSocketMap();
-      const warehousemanSocketId = userSocketMap[warehouseman._id.toString()];
+      const warehousemanSockets = userSocketMap[warehouseman._id.toString()];
 
-      if (warehousemanSocketId) {
-        io.to(warehousemanSocketId).emit("newMessage", {
+      if (warehousemanSockets && warehousemanSockets.length > 0) {
+        const populatedMessage = {
           ...externalMessage.toObject(),
           senderId: {
             _id: sender._id,
@@ -1369,7 +1377,19 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
             fullName: warehouseman.fullName,
             userName: warehouseman.userName,
           },
+        };
+
+        warehousemanSockets.forEach((socketInfo) => {
+          io.to(socketInfo.socketId).emit("newMessage", populatedMessage);
         });
+
+        console.log(
+          `✅ External request socket notification sent to ${warehouseman.fullName} on ${warehousemanSockets.length} device(s)`
+        );
+      } else {
+        console.log(
+          `⚠️ No active sockets for warehouseman: ${warehouseman.fullName}`
+        );
       }
 
       // Send push notification to warehouseman (ALWAYS send for external requests)
@@ -1377,7 +1397,7 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
         try {
           webPush.setVapidDetails(
             "mailto:danijel.osovnikar@gmail.com",
-            "BEvmu6KRMuMBPD7xWEYeTQvOfw-TNTns8R0xifdmq1Y89gJql2-W_17TvHGU6HnusR4SlQqvMgbY8d--FUHvc4w",
+            process.env.PUBLIC_VAPID_KEY,
             process.env.PRIVATE_VAPID_KEY
           );
 
@@ -1402,7 +1422,7 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
           );
 
           console.log(
-            `✅ External request notification sent to ${warehouseman.fullName} at ${targetWarehouse.name}`
+            `✅ External request push notification sent to ${warehouseman.fullName} at ${targetWarehouse.name}`
           );
         } catch (pushError) {
           console.error(
@@ -1410,7 +1430,39 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
             pushError
           );
         }
+      } else {
+        console.log(
+          `⚠️ No push subscription for warehouseman: ${warehouseman.fullName}`
+        );
       }
+    }
+
+    // Send real-time notification to the SENDER (employee) so they see their own message
+    const senderSockets = userSocketMap[sender._id.toString()];
+    if (senderSockets && senderSockets.length > 0) {
+      // Send the first created message back to the sender
+      // (All messages have same content, just different receivers)
+      const messageForSender = {
+        ...createdMessages[0].toObject(),
+        senderId: {
+          _id: sender._id,
+          fullName: sender.fullName,
+          userName: sender.userName,
+        },
+        receiverId: {
+          _id: targetWarehouseId,
+          fullName: targetWarehouse.name,
+          userName: targetWarehouse.name,
+        },
+      };
+
+      senderSockets.forEach((socketInfo) => {
+        io.to(socketInfo.socketId).emit("newMessage", messageForSender);
+      });
+
+      console.log(
+        `✅ External request echoed back to sender ${sender.fullName} on ${senderSockets.length} device(s)`
+      );
     }
 
     res.status(201).json({
@@ -1419,6 +1471,7 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
       targetWarehouse: targetWarehouse.name,
       sentTo: warehousemen.length,
       messageIds: createdMessages.map((msg) => msg._id),
+      sentMessage: createdMessages[0], // Return the message so frontend can add it
     });
   } catch (error) {
     console.error("Error in handleExternalWarehouseRequest:", error);
