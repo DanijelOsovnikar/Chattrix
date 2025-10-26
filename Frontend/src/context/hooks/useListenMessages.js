@@ -93,8 +93,25 @@ const useListenMessages = () => {
         if (!Array.isArray(currentMessages)) {
           setMessagesFunc([newMessage]);
         } else {
-          const newMessagesArray = [...currentMessages, newMessage];
-          setMessagesFunc(newMessagesArray);
+          // Check if message already exists to prevent duplicates
+          const messageExists = currentMessages.some(
+            (msg) => msg._id === newMessage._id
+          );
+
+          if (!messageExists) {
+            const newMessagesArray = [...currentMessages, newMessage];
+            setMessagesFunc(newMessagesArray);
+          } else {
+            // Message already exists, force a re-render with deduplicated array
+            // This handles cases where duplicates sneak in
+            const deduplicatedMessages = currentMessages.filter(
+              (msg, index, self) =>
+                index === self.findIndex((m) => m._id === msg._id)
+            );
+            if (deduplicatedMessages.length !== currentMessages.length) {
+              setMessagesFunc(deduplicatedMessages);
+            }
+          }
         }
       }
 

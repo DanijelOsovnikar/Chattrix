@@ -6,7 +6,7 @@ import TrackingView from "./TrackingView";
 
 const Messages = () => {
   useGetMessages(); // Still needed to fetch initial messages when conversation changes
-  const { messages, selectedConversation } = useConversations(); // Get messages directly from Zustand store
+  const { messages, selectedConversation, setMessages } = useConversations(); // Get messages directly from Zustand store
   const lastMessageRef = useRef();
 
   useEffect(() => {
@@ -14,6 +14,20 @@ const Messages = () => {
       lastMessageRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 300);
   }, [messages]);
+
+  // Deduplicate messages to prevent showing duplicates
+  useEffect(() => {
+    if (Array.isArray(messages) && messages.length > 0) {
+      const uniqueMessages = messages.filter(
+        (msg, index, self) => index === self.findIndex((m) => m._id === msg._id)
+      );
+
+      // Only update if duplicates were found
+      if (uniqueMessages.length !== messages.length) {
+        setMessages(uniqueMessages);
+      }
+    }
+  }, [messages, setMessages]);
 
   // Check if this is the tracking view
   if (selectedConversation?._id === "tracking_outgoing_requests") {
