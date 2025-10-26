@@ -9,17 +9,15 @@ const app = express();
 
 const server = http.createServer(app);
 
-// Dynamic CORS origin based on environment
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? [process.env.FRONTEND_URL || "https://your-production-domain.com"]
-    : process.env.NODE_ENV === "staging"
-    ? [
-        process.env.FRONTEND_URL || "https://your-staging-domain.com",
-        "http://localhost:5173",
-        "http://localhost:5174",
-      ]
-    : ["http://localhost:5173", "http://localhost:5174"];
+// Simple CORS - allow FRONTEND_URL + localhost for development
+const allowedOrigins = process.env.FRONTEND_URL
+  ? [process.env.FRONTEND_URL, "http://localhost:5173", "http://localhost:5174"]
+  : ["http://localhost:5173", "http://localhost:5174"];
+
+console.log("🔌 Socket.IO CORS Configuration:", {
+  FRONTEND_URL: process.env.FRONTEND_URL,
+  allowedOrigins,
+});
 
 const io = new Server(server, {
   cors: {
@@ -29,19 +27,17 @@ const io = new Server(server, {
       // Allow requests with no origin (like mobile apps or Postman)
       if (!origin) return callback(null, true);
 
-      // For staging and development, be more permissive
-      if (
-        process.env.NODE_ENV === "development" ||
-        process.env.NODE_ENV === "staging"
-      ) {
-        return callback(null, true);
-      }
-
-      // For production, check allowed origins
+      // Check if origin is in allowed list
       if (allowedOrigins.indexOf(origin) !== -1) {
+        console.log("✅ Socket.IO allowing origin");
         callback(null, true);
       } else {
-        console.error("❌ Socket.IO CORS blocked origin:", origin);
+        console.error(
+          "❌ Socket.IO CORS blocked origin:",
+          origin,
+          "| Allowed:",
+          allowedOrigins
+        );
         callback(new Error("Not allowed by CORS"));
       }
     },
