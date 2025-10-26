@@ -179,9 +179,35 @@ const useListenMessages = () => {
       }
     });
 
+    // Listen for nalog updates
+    socket?.on("nalogUpdate", (updateData) => {
+      console.log("📋 Received nalog update:", updateData);
+
+      const store = useConversations.getState();
+      const currentMessages = store.messages;
+      const setMessagesFunc = store.setMessages;
+
+      if (Array.isArray(currentMessages)) {
+        // Find and update the message with new nalog
+        const updatedMessages = currentMessages.map((msg) => {
+          if (msg._id === updateData.messageId) {
+            return {
+              ...msg,
+              nalog: updateData.nalog,
+              lastUpdateDate: updateData.lastUpdateDate,
+            };
+          }
+          return msg;
+        });
+
+        setMessagesFunc(updatedMessages);
+      }
+    });
+
     return () => {
       socket?.off("newMessage");
       socket?.off("externalStatusUpdate");
+      socket?.off("nalogUpdate");
     };
   }, [
     socket,

@@ -6,6 +6,7 @@ import {
   uncheckMessage,
   updateMessageStatus,
   updateExternalRequestStatus,
+  updateExternalRequestNalog,
   getOutgoingExternalRequests,
 } from "../controller/message.controller.js";
 import protectRoute from "../middleware/protectRoute.js";
@@ -23,5 +24,6 @@ router.patch(
   protectRoute,
   updateExternalRequestStatus
 );
+router.patch("/:messageId/nalog", protectRoute, updateExternalRequestNalog);
 
 export default router;

@@ -1191,6 +1191,94 @@ export const updateExternalRequestStatus = async (req, res) => {
   }
 };
 
+// Update nalog field for external requests
+export const updateExternalRequestNalog = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { nalog } = req.body;
+    const warehousemanId = req.user._id;
+
+    // Find the external request message
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    if (!message.isExternalRequest) {
+      return res.status(400).json({ error: "This is not an external request" });
+    }
+
+    // Verify warehouseman has permission (same shop as target warehouse)
+    if (req.user.shopId.toString() !== message.shopId.toString()) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Only warehousemen can update nalog
+    if (req.user.role !== "warehouseman") {
+      return res.status(403).json({
+        error: "Only warehousemen can update nalog",
+      });
+    }
+
+    // Update the nalog field
+    message.nalog = nalog;
+    message.lastUpdateDate = new Date();
+
+    await message.save();
+
+    // Populate the message for sending via socket
+    const populatedMessage = await Message.findById(message._id)
+      .populate("senderId", "fullName userName shopId")
+      .populate("receiverId", "fullName userName");
+
+    // Send real-time update to everyone involved
+    const io = req.io;
+    const userSocketMap = getUserSocketMap();
+
+    // Send to original sender (employee who made the request)
+    const senderSockets = userSocketMap[message.senderId._id.toString()];
+    if (senderSockets && senderSockets.length > 0) {
+      senderSockets.forEach((socketInfo) => {
+        io.to(socketInfo.socketId).emit("nalogUpdate", {
+          messageId: message._id,
+          nalog: message.nalog,
+          lastUpdateDate: message.lastUpdateDate,
+          updatedMessage: populatedMessage,
+        });
+      });
+      console.log(
+        `✅ Nalog update sent to sender on ${senderSockets.length} device(s)`
+      );
+    }
+
+    // Send to warehouseman who made the update (for their other devices)
+    const warehousemanSockets = userSocketMap[warehousemanId.toString()];
+    if (warehousemanSockets && warehousemanSockets.length > 0) {
+      warehousemanSockets.forEach((socketInfo) => {
+        io.to(socketInfo.socketId).emit("nalogUpdate", {
+          messageId: message._id,
+          nalog: message.nalog,
+          lastUpdateDate: message.lastUpdateDate,
+          updatedMessage: populatedMessage,
+        });
+      });
+      console.log(
+        `✅ Nalog update sent to warehouseman on ${warehousemanSockets.length} device(s)`
+      );
+    }
+
+    res.status(200).json({
+      message: "Nalog updated successfully",
+      nalog: message.nalog,
+      updatedBy: req.user.fullName,
+      updatedMessage: populatedMessage,
+    });
+  } catch (error) {
+    console.error("Error updating nalog:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 // Get outgoing external requests for managers to track
 export const getOutgoingExternalRequests = async (req, res) => {
   try {

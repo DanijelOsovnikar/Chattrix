@@ -111,6 +111,10 @@ const messageSchema = new mongoose.Schema(
       enum: ["send", "keep"],
       default: "send",
     },
+    nalog: {
+      type: String,
+      default: "",
+    },
     statusHistory: [
       {
         status: {

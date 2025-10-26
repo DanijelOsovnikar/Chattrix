@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import useConversation from "../../store/useConversation";
 import { useAuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
@@ -11,6 +11,14 @@ const Message = ({ message }) => {
   const { selectedConversation } = useConversation();
   const iframeRef = useRef(null);
   const [color, setColor] = useState(message.opened);
+  const [nalogValue, setNalogValue] = useState(message.nalog || "");
+
+  // Sync nalog value when message updates via socket
+  useEffect(() => {
+    if (message.nalog !== undefined) {
+      setNalogValue(message.nalog);
+    }
+  }, [message.nalog]);
 
   const fromMe =
     message.senderId?._id === authUser._id || message.senderId === authUser._id;
@@ -24,6 +32,31 @@ const Message = ({ message }) => {
     ? "bg-pink-500"
     : "";
   const formatedTime = extractTime(message.createdAt);
+
+  const handleNalogUpdate = async (messageId) => {
+    try {
+      const res = await fetch(`/api/messages/${messageId}/nalog`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          nalog: nalogValue,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      toast.success("Nalog updated successfully");
+      // The message will be updated via socket event
+    } catch (error) {
+      console.error("Error updating nalog:", error);
+      toast.error("Failed to update nalog");
+    }
+  };
 
   const handleExternalStatusUpdate = async (messageId, status) => {
     try {
@@ -559,6 +592,46 @@ const Message = ({ message }) => {
             </div>
           )}
 
+        {/* Nalog Update Section - Only for warehousemen on external requests */}
+        {message.isExternalRequest &&
+          !fromMe &&
+          authUser.role === "warehouseman" && (
+            <div className="mb-3 p-2 bg-black/20 rounded">
+              <div className="text-xs text-yellow-300 mb-2 font-semibold">
+                Update Nalog:
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={nalogValue}
+                  onChange={(e) => setNalogValue(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="Enter nalog..."
+                  className="flex-1 px-2 py-1 text-xs rounded bg-white text-gray-800 border-2 border-gray-300 focus:border-blue-500 focus:outline-none"
+                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNalogUpdate(message._id);
+                  }}
+                  className="px-3 py-1 text-xs rounded font-bold bg-blue-600 hover:bg-blue-700 text-blue-100 transition-colors"
+                >
+                  Update
+                </button>
+              </div>
+            </div>
+          )}
+
+        {/* Display Nalog for everyone if it exists */}
+        {message.isExternalRequest && message.nalog && (
+          <div className="mb-2 p-2 bg-green-900/30 rounded border-l-4 border-green-400">
+            <div className="text-xs">
+              <span className="font-semibold text-green-300">📋 Nalog:</span>{" "}
+              <span className="text-white">{message.nalog}</span>
+            </div>
+          </div>
+        )}
+
         {message.messages && message.messages.length > 0 ? (
           message.messages.map((mess, index) => (
             <div key={`${message._id}-${mess.ean}-${mess.naziv}-${index}`}>
@@ -632,6 +705,7 @@ Message.propTypes = {
     externalAction: PropTypes.string,
     lastUpdateDate: PropTypes.string,
     senderShopName: PropTypes.string,
+    nalog: PropTypes.string,
   }).isRequired,
 };
 
