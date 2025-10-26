@@ -1305,6 +1305,9 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
       orderNumber ||
       `EXT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+    // Get userSocketMap once before loops
+    const userSocketMap = getUserSocketMap();
+
     // Create external request message for each warehouseman
     const createdMessages = [];
 
@@ -1361,7 +1364,6 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
       await conversation.save();
 
       // Send real-time notification to warehouseman (to ALL their connected devices)
-      const userSocketMap = getUserSocketMap();
       const warehousemanSockets = userSocketMap[warehouseman._id.toString()];
 
       if (warehousemanSockets && warehousemanSockets.length > 0) {
@@ -1371,12 +1373,15 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
             _id: sender._id,
             fullName: sender.fullName,
             userName: sender.userName,
+            shopId: senderShop._id,
+            shopName: senderShop.name,
           },
           receiverId: {
             _id: warehouseman._id,
             fullName: warehouseman.fullName,
             userName: warehouseman.userName,
           },
+          senderShopName: senderShop.name, // Add shop name to message
         };
 
         warehousemanSockets.forEach((socketInfo) => {
@@ -1448,12 +1453,15 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
           _id: sender._id,
           fullName: sender.fullName,
           userName: sender.userName,
+          shopId: senderShop._id,
+          shopName: senderShop.name,
         },
         receiverId: {
           _id: targetWarehouseId,
           fullName: targetWarehouse.name,
           userName: targetWarehouse.name,
         },
+        senderShopName: senderShop.name,
       };
 
       senderSockets.forEach((socketInfo) => {

@@ -11,7 +11,7 @@ import {
 } from "react-icons/bs";
 import useConversation from "../store/useConversation";
 import { useAuthContext } from "../context/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Conversations = () => {
   const { loading, conversations } = useGetConversations();
@@ -30,8 +30,32 @@ const Conversations = () => {
     useState(true);
   const [isExternalRequestsExpanded, setIsExternalRequestsExpanded] =
     useState(true);
+  const [newExternalShops, setNewExternalShops] = useState(new Set());
 
   useListenMessages();
+
+  // Listen for new external messages to highlight shops
+  useEffect(() => {
+    const handleNewMessage = (event) => {
+      const newMessage = event.detail;
+
+      // Check if it's an external request from a shop
+      if (newMessage.isExternalRequest && newMessage.senderId?.shopId) {
+        const shopId = `external_shop_${newMessage.senderId.shopId}`;
+
+        // Only highlight if not currently viewing this conversation
+        if (selectedConversation?._id !== shopId) {
+          setNewExternalShops((prev) => new Set(prev).add(shopId));
+        }
+      }
+    };
+
+    window.addEventListener("conversationNewMessage", handleNewMessage);
+
+    return () => {
+      window.removeEventListener("conversationNewMessage", handleNewMessage);
+    };
+  }, [selectedConversation]);
 
   // Handle external warehouse selection
   const handleExternalWarehouseClick = (warehouse) => {
@@ -52,9 +76,18 @@ const Conversations = () => {
   const handleInternalConversationClick = (conversation) => {
     setSelectedConversation(conversation);
     setIsExternalWarehouse(false);
+
+    // Clear highlight when viewing the conversation
+    if (newExternalShops.has(conversation._id)) {
+      setNewExternalShops((prev) => {
+        const updated = new Set(prev);
+        updated.delete(conversation._id);
+        return updated;
+      });
+    }
   };
 
-  // Handle external tracking conversation selection (for managers)
+  // Handle tracking conversation selection (for managers)
   const handleTrackingConversationClick = () => {
     const trackingConversation = {
       _id: `tracking_outgoing_requests`,
@@ -137,37 +170,53 @@ const Conversations = () => {
             <div className="max-h-80 overflow-y-auto">
               {conversations
                 .filter((conv) => conv.isExternalShop)
-                .map((shop) => (
-                  <div
-                    key={shop._id}
-                    onClick={() => handleInternalConversationClick(shop)}
-                    className={`flex gap-2 items-center hover:bg-base-300 rounded p-2 py-1 cursor-pointer transition-colors
-                    ${
-                      selectedConversation?._id === shop._id
-                        ? "bg-base-300"
-                        : ""
-                    }
-                  `}
-                  >
-                    <div className="avatar placeholder">
-                      <div className="bg-secondary text-secondary-content rounded-full w-8">
-                        <span className="text-xs">
-                          {shop.code?.charAt(0) || "S"}
-                        </span>
+                .map((shop) => {
+                  const hasNewMessage = newExternalShops.has(shop._id);
+                  return (
+                    <div
+                      key={shop._id}
+                      onClick={() => handleInternalConversationClick(shop)}
+                      className={`flex gap-2 items-center hover:bg-base-300 rounded p-2 py-1 cursor-pointer transition-colors relative
+                      ${
+                        selectedConversation?._id === shop._id
+                          ? "bg-base-300"
+                          : hasNewMessage
+                          ? "bg-yellow-500/10 border-l-4 border-yellow-500"
+                          : ""
+                      }
+                    `}
+                    >
+                      <div className="avatar placeholder">
+                        <div
+                          className={`bg-secondary text-secondary-content rounded-full w-8 ${
+                            hasNewMessage
+                              ? "ring-2 ring-yellow-500 ring-offset-2 ring-offset-base-100"
+                              : ""
+                          }`}
+                        >
+                          <span className="text-xs">
+                            {shop.code?.charAt(0) || "S"}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <div className="flex gap-3 justify-between">
-                        <p className="font-bold text-base-content text-sm truncate">
-                          {shop.fullName}
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <div className="flex gap-3 justify-between items-center">
+                          <p className="font-bold text-base-content text-sm truncate">
+                            {shop.fullName}
+                          </p>
+                          {hasNewMessage && (
+                            <span className="badge badge-warning badge-sm">
+                              New
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-base-content/60 truncate">
+                          {shop.code} • External Shop
                         </p>
                       </div>
-                      <p className="text-xs text-base-content/60 truncate">
-                        {shop.code} • External Shop
-                      </p>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         </div>

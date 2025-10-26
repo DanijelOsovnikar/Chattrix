@@ -458,6 +458,20 @@ const Message = ({ message }) => {
             </div>
             <div className="text-xs space-y-1">
               <div>
+                🏢 From Shop:{" "}
+                <span className="font-semibold text-yellow-200">
+                  {message.senderShopName ||
+                    message.senderId?.shopName ||
+                    "Unknown Shop"}
+                </span>
+              </div>
+              <div>
+                👤 Sender:{" "}
+                <span className="font-semibold">
+                  {message.senderId?.fullName || "Unknown"}
+                </span>
+              </div>
+              <div>
                 📦 Order:{" "}
                 <span className="font-mono">{message.orderNumber}</span>
               </div>
@@ -617,6 +631,7 @@ Message.propTypes = {
     externalStatus: PropTypes.string,
     externalAction: PropTypes.string,
     lastUpdateDate: PropTypes.string,
+    senderShopName: PropTypes.string,
   }).isRequired,
 };
 
