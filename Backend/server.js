@@ -20,6 +20,7 @@ import shopRoutes from "./routes/shop.js";
 import notificationSettingsRoutes from "./routes/notificationSettings.js";
 import passwordRoutes from "./routes/password.js";
 import warehouseRoutes from "./routes/warehouse.js";
+import analyticsRoutes from "./routes/analytics.js";
 
 import connectToMongoDB from "./db/connectToMongoDB.js";
 import { app, server } from "./socket/socket.js";
@@ -39,14 +40,11 @@ console.log("🔧 CORS Configuration:", {
 app.use(
   cors({
     origin: (origin, callback) => {
-      console.log("📨 Request origin:", origin);
-
       // Allow requests with no origin (like mobile apps or Postman)
       if (!origin) return callback(null, true);
 
       // Check if origin is in allowed list
       if (allowedOrigins.indexOf(origin) !== -1) {
-        console.log("✅ Allowing origin");
         callback(null, true);
       } else {
         console.error(
@@ -76,6 +74,7 @@ app.use("/api/shops", shopRoutes);
 app.use("/api/notifications", notificationSettingsRoutes);
 app.use("/api/password", passwordRoutes);
 app.use("/api/warehouses", warehouseRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 app.use(express.static(join(__dirname, "../Frontend/dist")));
 

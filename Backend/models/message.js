@@ -63,6 +63,9 @@ const messageSchema = new mongoose.Schema(
     opened: {
       type: Boolean,
     },
+    openedAt: {
+      type: Date,
+    },
     savaGodine: {
       type: String,
     },

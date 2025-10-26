@@ -185,11 +185,9 @@ export const sendMessage = async (req, res) => {
       });
 
       if (externalEmployees.length === 0) {
-        return res
-          .status(404)
-          .json({
-            error: "No active employees/cashiers found in external shop",
-          });
+        return res.status(404).json({
+          error: "No active employees/cashiers found in external shop",
+        });
       }
 
       // Send message to all employees in the external shop
@@ -619,9 +617,22 @@ export const checkedMessage = async (req, res) => {
   try {
     const { messId: messageId } = req.params;
 
+    // First, find the message to check if it's already opened
+    const existingMessage = await Message.findById(messageId);
+    if (!existingMessage) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    // Prepare update object
+    const updateData = { opened: true };
+    // Only set openedAt if message wasn't previously opened
+    if (!existingMessage.opened && !existingMessage.openedAt) {
+      updateData.openedAt = new Date();
+    }
+
     let message = await Message.findOneAndUpdate(
       { _id: messageId },
-      { opened: true },
+      updateData,
       { new: true }
     ).populate("senderId", "fullName pushSubscription notificationPreferences");
 

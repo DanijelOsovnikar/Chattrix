@@ -22,14 +22,11 @@ console.log("🔌 Socket.IO CORS Configuration:", {
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
-      console.log("🔌 Socket.IO request from origin:", origin);
-
       // Allow requests with no origin (like mobile apps or Postman)
       if (!origin) return callback(null, true);
 
       // Check if origin is in allowed list
       if (allowedOrigins.indexOf(origin) !== -1) {
-        console.log("✅ Socket.IO allowing origin");
         callback(null, true);
       } else {
         console.error(

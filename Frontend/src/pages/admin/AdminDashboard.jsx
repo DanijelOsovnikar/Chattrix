@@ -6,6 +6,7 @@ import ShopManagement from "../../components/admin/ShopManagement";
 import NotificationSettings from "../../components/admin/NotificationSettings";
 import PasswordManagement from "../../components/admin/PasswordManagement";
 import WarehouseManagement from "../../components/admin/WarehouseManagement";
+import Analytics from "../../components/admin/Analytics";
 import Sidebar from "../../components/Sidebar";
 import MessageContainer from "../../components/Messages/MessageContainer";
 import ThemeSelector from "../../components/ThemeSelector";
@@ -183,6 +184,20 @@ const AdminDashboard = () => {
                 Warehouse Management
               </button>
             )}
+
+            {/* Analytics tab - only for super_admin */}
+            {authUser.role === "super_admin" && (
+              <button
+                onClick={() => setActiveTab("analytics")}
+                className={`py-4 px-1 border-b-2 font-medium text-nowrap text-sm ${
+                  activeTab === "analytics"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-base-content hover:text-primary hover:border-primary"
+                }`}
+              >
+                Analytics
+              </button>
+            )}
           </nav>
         </div>
       </div>
@@ -203,6 +218,9 @@ const AdminDashboard = () => {
         )}
         {activeTab === "warehouses" && authUser.role === "super_admin" && (
           <WarehouseManagement key={`warehouses-${activeTab}`} />
+        )}
+        {activeTab === "analytics" && authUser.role === "super_admin" && (
+          <Analytics key={`analytics-${activeTab}`} />
         )}
       </div>
     </div>
