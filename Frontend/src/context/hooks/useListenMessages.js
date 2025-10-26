@@ -117,10 +117,17 @@ const useListenMessages = () => {
 
       // Show notification with EAN and name
       try {
-        const senderName =
+        let senderName =
           currConversation?.fullName ||
           newMessage.senderId?.fullName ||
           "Unknown User";
+
+        // For external requests, include shop name
+        if (newMessage.isExternalRequest && newMessage.senderShopName) {
+          senderName = `${newMessage.senderShopName} - ${
+            newMessage.senderId?.fullName || "Unknown"
+          }`;
+        }
 
         const ean = newMessage.messages?.[0]?.ean || "No EAN";
         const naziv = newMessage.messages?.[0]?.naziv || "No Name";
@@ -146,8 +153,35 @@ const useListenMessages = () => {
       }
     });
 
+    // Listen for external status updates
+    socket?.on("externalStatusUpdate", (updateData) => {
+      console.log("📊 Received external status update:", updateData);
+
+      const store = useConversations.getState();
+      const currentMessages = store.messages;
+      const setMessagesFunc = store.setMessages;
+
+      if (Array.isArray(currentMessages)) {
+        // Find and update the message with new status
+        const updatedMessages = currentMessages.map((msg) => {
+          if (msg._id === updateData.messageId) {
+            return {
+              ...msg,
+              externalStatus: updateData.externalStatus,
+              lastUpdateDate: updateData.lastUpdateDate,
+              statusHistory: updateData.statusHistory,
+            };
+          }
+          return msg;
+        });
+
+        setMessagesFunc(updatedMessages);
+      }
+    });
+
     return () => {
       socket?.off("newMessage");
+      socket?.off("externalStatusUpdate");
     };
   }, [
     socket,

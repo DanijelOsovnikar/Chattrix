@@ -1137,25 +1137,53 @@ export const updateExternalRequestStatus = async (req, res) => {
 
     await message.save();
 
-    // Send real-time update to the original sender
+    // Populate the message for sending via socket
+    const populatedMessage = await Message.findById(message._id)
+      .populate("senderId", "fullName userName shopId")
+      .populate("receiverId", "fullName userName");
+
+    // Send real-time update to the original sender (employee who made the request)
     const io = req.io;
     const userSocketMap = getUserSocketMap();
-    const senderSocketId = userSocketMap[message.senderId.toString()];
+    const senderSockets = userSocketMap[message.senderId._id.toString()];
 
-    if (senderSocketId) {
-      io.to(senderSocketId).emit("externalRequestUpdate", {
-        messageId: message._id,
-        status,
-        updatedBy: req.user.fullName,
-        updatedAt: new Date(),
-        notes,
+    if (senderSockets && senderSockets.length > 0) {
+      senderSockets.forEach((socketInfo) => {
+        io.to(socketInfo.socketId).emit("externalStatusUpdate", {
+          messageId: message._id,
+          externalStatus: status,
+          lastUpdateDate: message.lastUpdateDate,
+          statusHistory: message.statusHistory,
+          updatedMessage: populatedMessage,
+        });
       });
+      console.log(
+        `✅ Status update sent to sender on ${senderSockets.length} device(s)`
+      );
+    }
+
+    // Also send update to warehouseman who made the update (for their other devices)
+    const warehousemanSockets = userSocketMap[warehousemanId.toString()];
+    if (warehousemanSockets && warehousemanSockets.length > 0) {
+      warehousemanSockets.forEach((socketInfo) => {
+        io.to(socketInfo.socketId).emit("externalStatusUpdate", {
+          messageId: message._id,
+          externalStatus: status,
+          lastUpdateDate: message.lastUpdateDate,
+          statusHistory: message.statusHistory,
+          updatedMessage: populatedMessage,
+        });
+      });
+      console.log(
+        `✅ Status update sent to warehouseman on ${warehousemanSockets.length} device(s)`
+      );
     }
 
     res.status(200).json({
       message: "External request status updated successfully",
       status,
       updatedBy: req.user.fullName,
+      updatedMessage: populatedMessage,
     });
   } catch (error) {
     console.error("Error updating external request status:", error);
@@ -1328,6 +1356,7 @@ const handleExternalWarehouseRequest = async (req, res, params) => {
         // External request specific fields
         isExternalRequest: true,
         targetWarehouseId,
+        senderShopName: senderShop.name, // Save shop name in the message
         orderNumber: finalOrderNumber,
         orderDate: new Date(orderDate),
         externalStatus: externalStatus || "pending",

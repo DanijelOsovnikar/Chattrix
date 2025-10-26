@@ -87,6 +87,9 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Shop",
     },
+    senderShopName: {
+      type: String,
+    },
     orderNumber: {
       type: String,
     },
