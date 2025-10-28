@@ -134,8 +134,13 @@ const Message = ({ message }) => {
     const iframe = iframeRef.current;
     const gigamaxUser = isUUID(message.buyer);
 
+    const isIdNumber =
+      message.senderUsername && !isNaN(Number(message.senderUsername));
+
     // Ensure the gigaId is a string
-    const qrCodeContent = String(message.gigaId);
+    const qrCodeContent = String(
+      isIdNumber ? message.senderUsername : message.sellerId
+    );
 
     try {
       let gigamaxQrCodeSVG = "";
@@ -145,8 +150,8 @@ const Message = ({ message }) => {
           width: 50,
           height: 50,
         });
-        gigamaxQrCode.options.width = 100;
-        gigamaxQrCode.options.height = 100;
+        gigamaxQrCode.options.width = 60;
+        gigamaxQrCode.options.height = 60;
 
         gigamaxQrCodeSVG = gigamaxUser ? gigamaxQrCode.svg() : "";
       }
@@ -157,8 +162,8 @@ const Message = ({ message }) => {
         height: 50,
       });
 
-      qrCode.options.width = 100;
-      qrCode.options.height = 100;
+      qrCode.options.width = 60;
+      qrCode.options.height = 60;
 
       // Get the Data URL of the QR code
       const qrCodeSVG = qrCode.svg();
