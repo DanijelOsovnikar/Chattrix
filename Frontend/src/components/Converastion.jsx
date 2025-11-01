@@ -40,7 +40,8 @@ const Converastion = ({ conversation, isClickable = true }) => {
       // This conversation should highlight if:
       // 1. The message is FROM this user (senderId matches this conversation's user ID)
       // 2. AND this conversation is not currently selected
-      // This means: when User A sends a message, highlight User A in the sidebar
+      // This means: when someone sends a message, highlight their conversation in the sidebar
+      // For warehousemen: when an employee sends a message, highlight the employee's conversation
       if (senderId === conversation._id && !isSelected) {
         // console.log(
         //   `✅ [${conversation.fullName}] Highlighting - message from this user`

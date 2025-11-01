@@ -41,9 +41,14 @@ const useListenMessages = () => {
           ? newMessage.receiverId._id
           : newMessage.receiverId;
 
-      const currConversation = conversations.find((i) => i._id === senderId);
+      // Find the conversation to move to top - check both senderId and receiverId
+      // For warehousemen: the conversation might match the senderId (employee who sent the message)
+      // For employees: the conversation might match the senderId (when they send)
+      const currConversation = conversations.find(
+        (i) => i._id === senderId || i._id === receiverId
+      );
 
-      // Update conversations list if conversation exists
+      // Update conversations list if conversation exists - move to top
       if (currConversation) {
         const updatedConversations = [
           currConversation,
