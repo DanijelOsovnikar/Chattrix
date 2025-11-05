@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { BsSend } from "react-icons/bs";
 import useSendMessage from "../../context/hooks/useSendMessage";
@@ -6,6 +6,9 @@ import { useAuthContext } from "../../context/AuthContext";
 import MainInputFields from "./MainInputFields";
 import useConversations from "../../store/useConversation";
 import { BsQrCodeScan, BsBuilding } from "react-icons/bs";
+import { Dialog, Transition } from "@headlessui/react";
+import { TransitionModalFade } from "../TransitionModalFade";
+import { TransitionModalBackground } from "../TransitionModalBackground";
 
 const MessageInput = () => {
   const ref = useRef();
@@ -149,180 +152,10 @@ const MessageInput = () => {
 
   return (
     <>
-      {activeForm ? (
-        <FormProvider {...methods}>
-          <form
-            className="py-3 overflow-y-scroll"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            <div className="flex justify-between items-center mb-4">
-              {/* Show selected external warehouse info */}
-              {isExternalWarehouse && selectedConversation?.isExternal && (
-                <div className="flex items-center gap-2 px-3 py-1 bg-primary/20 rounded-lg">
-                  <BsBuilding className="text-primary" />
-                  <span className="text-sm font-medium text-primary">
-                    External: {selectedConversation.fullName} (
-                    {selectedConversation.code})
-                  </span>
-                </div>
-              )}
-
-              {/* For internal requests, just show empty div to maintain layout */}
-              {!isExternalWarehouse && <div></div>}
-
-              <button
-                type="button"
-                onClick={addMessage}
-                className="bg-primary text-primary-content py-1 px-4 rounded"
-              >
-                Add item
-              </button>
-            </div>
-
-            <div className="w-full relative">
-              {fields.map((field, index) => (
-                <MainInputFields
-                  key={field.id}
-                  index={index}
-                  onRemove={() => remove(index)}
-                  canDelete={fields.length > 1}
-                  isExternalRequest={isExternalWarehouse}
-                />
-              ))}
-
-              {/* External action selector - only show for external requests */}
-              {isExternalWarehouse && (
-                <div className="my-4 bg-base-100 border border-primary rounded-lg p-4">
-                  <label
-                    htmlFor="externalAction"
-                    className="block text-sm font-medium mb-2 text-base-content"
-                  >
-                    Request Type <span className="text-error">*</span>
-                  </label>
-                  <select
-                    id="externalAction"
-                    {...control.register("externalAction")}
-                    className="select select-bordered w-full bg-base-100 text-base-content border-primary focus:outline-primary"
-                  >
-                    <option value="send">Send to our shop</option>
-                    <option value="keep">Keep for customer pickup</option>
-                  </select>
-                  <p className="text-xs mt-2 text-base-content/70">
-                    {watch("externalAction") === "send"
-                      ? "Items will be sent to your shop"
-                      : "Items will be kept at the warehouse for customer pickup"}
-                  </p>
-                </div>
-              )}
-
-              <div className="groupInputQr">
-                <input
-                  type="text"
-                  placeholder="Ime kupca"
-                  id="kupac"
-                  {...control.register("kupac")}
-                  className="border my-2 text-sm pr-12 truncate rounded-lg block w-full p-2.5 bg-base-100 text-base-content !border-primary focus:!ring-0"
-                />
-                <button
-                  type="button"
-                  className="qrCodeBtn"
-                  onClick={handleNameCodeClick}
-                >
-                  <BsQrCodeScan />
-                </button>
-              </div>
-
-              {/* Conditional customer name field - only show when kupac was filled by QR */}
-              {kupacFilledByQR && (
-                <input
-                  type="text"
-                  placeholder="Ime kupca"
-                  id="kupacName"
-                  {...control.register("kupacName")}
-                  className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-base-100 text-base-content !border-primary focus:!ring-0"
-                />
-              )}
-
-              <input
-                ref={ref}
-                type="text"
-                placeholder="Prodavac"
-                id="ime"
-                {...control.register("ime")}
-                className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-base-100 text-base-content !border-primary focus:!ring-0"
-              />
-              {/* Sava Osiguranje - only show for internal requests */}
-              {!isExternalWarehouse && (
-                <fieldset className="fieldset bg-base-100 border-primary rounded-box border p-4 my-4">
-                  <legend className="fieldset-legend px-2">
-                    Sava Osiguranje
-                  </legend>
-                  <label className="label cursor-pointer">
-                    <span className="label-text">Da</span>
-                    <input
-                      type="radio"
-                      value="true"
-                      id="savaDa"
-                      {...control.register("sava")}
-                      className="radio radio-primary"
-                    />
-                  </label>
-                  <label className="label cursor-pointer">
-                    <span className="label-text">Ne</span>
-                    <input
-                      type="radio"
-                      value="false"
-                      id="savaNe"
-                      {...control.register("sava")}
-                      className="radio radio-primary"
-                    />
-                  </label>
-                  {watchSava === "true" && (
-                    <div className="mt-4 pl-4 border-l-2 border-primary/30">
-                      <label className="label cursor-pointer">
-                        <span className="label-text">1 Godina</span>
-                        <input
-                          type="radio"
-                          value="1 Godina"
-                          id="savaGodina"
-                          {...control.register("savaGodine")}
-                          className="radio radio-primary"
-                        />
-                      </label>
-                      <label className="label cursor-pointer">
-                        <span className="label-text">2 Godine</span>
-                        <input
-                          type="radio"
-                          value="2 Godine"
-                          id="savaDveGodine"
-                          {...control.register("savaGodine")}
-                          className="radio radio-primary"
-                        />
-                      </label>
-                    </div>
-                  )}
-                </fieldset>
-              )}
-              <button
-                type="submit"
-                className="flex justify-center items-center my-4 bg-primary text-primary-content py-2 px-8 rounded mt-[27px]"
-                disabled={loading}
-              >
-                {authUser.role === "warehouseman" &&
-                selectedConversation?.isExternalShop
-                  ? "Send message"
-                  : "Send request"}
-                <BsSend className="w-5 h-5 ml-2" />
-              </button>
-            </div>
-          </form>
-        </FormProvider>
-      ) : (
-        // Show "Send a order" button only for non-warehousemen
-        // Warehousemen update nalog field instead of sending new messages
-        authUser.role !== "warehouseman" && (
+      {authUser.role !== "warehouseman" && (
+        <>
           <button
-            className="p-2 w-full bg-primary mt-4 rounded-lg text-primary-content"
+            className="p-2 w-full bg-primary mt-4 rounded-lg text-white"
             onClick={() => {
               setActiveForm(true);
               setTimeout(() => {
@@ -334,7 +167,201 @@ const MessageInput = () => {
           >
             Send a order
           </button>
-        )
+          <Transition appear show={activeForm} as={Fragment}>
+            <Dialog open={activeForm} onClose={() => setActiveForm(false)}>
+              <TransitionModalBackground />
+              <TransitionModalFade>
+                <Dialog.Panel className="md:max-h-[90vh] md:translate-y-[5vh] fixed top-0 bottom-0 left-0 right-0 bg-base-200 p-4 overflow-y-auto w-full md:max-w-2xl md:mx-auto md:rounded-lg">
+                  <div className="flex w-full items-center justify-between mb-4">
+                    <Dialog.Title className="text-lg font-medium text-base-content">
+                      Send Request
+                    </Dialog.Title>
+                    <button type="button" onClick={() => setActiveForm(false)}>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 18 18"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="fill-fill"
+                      >
+                        <path d="M16.8438 15.293C17.3008 15.8008 17.3008 16.5625 16.8438 17.0195C16.3359 17.5273 15.5742 17.5273 15.1172 17.0195L9.125 10.9766L3.08203 17.0195C2.57422 17.5273 1.8125 17.5273 1.35547 17.0195C0.847656 16.5625 0.847656 15.8008 1.35547 15.293L7.39844 9.25L1.35547 3.20703C0.847656 2.69922 0.847656 1.9375 1.35547 1.48047C1.8125 0.972656 2.57422 0.972656 3.03125 1.48047L9.125 7.57422L15.168 1.53125C15.625 1.02344 16.3867 1.02344 16.8438 1.53125C17.3516 1.98828 17.3516 2.75 16.8438 3.25781L10.8008 9.25L16.8438 15.293Z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <FormProvider {...methods}>
+                    <form
+                      className="overflow-y-scroll"
+                      onSubmit={handleSubmit(onSubmit)}
+                    >
+                      <div className="flex justify-between items-center">
+                        {/* Show selected external warehouse info */}
+                        {isExternalWarehouse &&
+                          selectedConversation?.isExternal && (
+                            <div className="flex items-center gap-2 px-3 py-1 bg-primary/20 rounded-lg">
+                              <BsBuilding className="text-primary" />
+                              <span className="text-sm font-medium text-primary">
+                                External: {selectedConversation.fullName} (
+                                {selectedConversation.code})
+                              </span>
+                            </div>
+                          )}
+
+                        {/* For internal requests, just show empty div to maintain layout */}
+                        {!isExternalWarehouse && <div></div>}
+                      </div>
+
+                      <div className="w-full relative">
+                        {fields.map((field, index) => (
+                          <MainInputFields
+                            key={field.id}
+                            index={index}
+                            onRemove={() => remove(index)}
+                            canDelete={fields.length > 1}
+                            isExternalRequest={isExternalWarehouse}
+                          />
+                        ))}
+                        <button
+                          type="button"
+                          onClick={addMessage}
+                          className="bg-primary text-white py-1 px-4 mb-2 rounded"
+                        >
+                          Add item
+                        </button>
+
+                        {/* External action selector - only show for external requests */}
+                        {isExternalWarehouse && (
+                          <div className="my-4 bg-base-100 border border-primary rounded-lg p-4">
+                            <label
+                              htmlFor="externalAction"
+                              className="block text-sm font-medium mb-2 text-base-content"
+                            >
+                              Request Type <span className="text-error">*</span>
+                            </label>
+                            <select
+                              id="externalAction"
+                              {...control.register("externalAction")}
+                              className="select select-bordered w-full bg-base-100 text-base-content border-primary focus:outline-primary"
+                            >
+                              <option value="send">Send to our shop</option>
+                              <option value="keep">
+                                Keep for customer pickup
+                              </option>
+                            </select>
+                            <p className="text-xs mt-2 text-base-content/70">
+                              {watch("externalAction") === "send"
+                                ? "Items will be sent to your shop"
+                                : "Items will be kept at the warehouse for customer pickup"}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="groupInputQr">
+                          <input
+                            type="text"
+                            placeholder="Ime kupca"
+                            id="kupac"
+                            {...control.register("kupac")}
+                            className="border my-2 text-sm pr-12 truncate rounded-lg block w-full p-2.5 bg-base-100 text-base-content !border-primary focus:!ring-0"
+                          />
+                          <button
+                            type="button"
+                            className="qrCodeBtn"
+                            onClick={handleNameCodeClick}
+                          >
+                            <BsQrCodeScan />
+                          </button>
+                        </div>
+
+                        {/* Conditional customer name field - only show when kupac was filled by QR */}
+                        {kupacFilledByQR && (
+                          <input
+                            type="text"
+                            placeholder="Ime kupca"
+                            id="kupacName"
+                            {...control.register("kupacName")}
+                            className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-base-100 text-base-content !border-primary focus:!ring-0"
+                          />
+                        )}
+
+                        <input
+                          ref={ref}
+                          type="text"
+                          placeholder="Prodavac"
+                          id="ime"
+                          {...control.register("ime")}
+                          className="border my-2 text-sm rounded-lg block w-full p-2.5 bg-base-100 text-base-content !border-primary focus:!ring-0"
+                        />
+                        {/* Sava Osiguranje - only show for internal requests */}
+                        {!isExternalWarehouse && (
+                          <fieldset className="fieldset bg-base-100 border-primary rounded-box border p-4 my-4">
+                            <legend className="fieldset-legend px-2">
+                              Sava Osiguranje
+                            </legend>
+                            <label className="label cursor-pointer">
+                              <span className="label-text">Da</span>
+                              <input
+                                type="radio"
+                                value="true"
+                                id="savaDa"
+                                {...control.register("sava")}
+                                className="radio radio-primary"
+                              />
+                            </label>
+                            <label className="label cursor-pointer">
+                              <span className="label-text">Ne</span>
+                              <input
+                                type="radio"
+                                value="false"
+                                id="savaNe"
+                                {...control.register("sava")}
+                                className="radio radio-primary"
+                              />
+                            </label>
+                            {watchSava === "true" && (
+                              <div className="mt-4 pl-4 border-l-2 border-primary/30">
+                                <label className="label cursor-pointer">
+                                  <span className="label-text">1 Godina</span>
+                                  <input
+                                    type="radio"
+                                    value="1 Godina"
+                                    id="savaGodina"
+                                    {...control.register("savaGodine")}
+                                    className="radio radio-primary"
+                                  />
+                                </label>
+                                <label className="label cursor-pointer">
+                                  <span className="label-text">2 Godine</span>
+                                  <input
+                                    type="radio"
+                                    value="2 Godine"
+                                    id="savaDveGodine"
+                                    {...control.register("savaGodine")}
+                                    className="radio radio-primary"
+                                  />
+                                </label>
+                              </div>
+                            )}
+                          </fieldset>
+                        )}
+                        <button
+                          type="submit"
+                          className="flex justify-center w-full items-center my-4 bg-primary text-white py-2 px-8 rounded mt-[27px]"
+                          disabled={loading}
+                        >
+                          {authUser.role === "warehouseman" &&
+                          selectedConversation?.isExternalShop
+                            ? "Send message"
+                            : "Send request"}
+                          <BsSend className="w-5 h-5 ml-2" />
+                        </button>
+                      </div>
+                    </form>
+                  </FormProvider>
+                </Dialog.Panel>
+              </TransitionModalFade>
+            </Dialog>
+          </Transition>
+        </>
       )}
     </>
   );
