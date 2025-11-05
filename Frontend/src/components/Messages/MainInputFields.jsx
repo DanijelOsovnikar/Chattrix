@@ -175,7 +175,7 @@ const MainInputFields = ({
         <button
           type="button"
           onClick={onRemove}
-          className="flex justify-center items-center bg-error text-error-content hover:bg-error/80 p-1 rounded transition-colors justify-self-end"
+          className="flex justify-center items-center bg-error text-white hover:bg-error/80 p-1 rounded transition-colors justify-self-end"
           title="Delete item"
         >
           Delete item

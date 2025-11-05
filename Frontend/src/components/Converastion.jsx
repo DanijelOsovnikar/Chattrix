@@ -123,10 +123,10 @@ const Converastion = ({ conversation, isClickable = true }) => {
   return (
     <>
       <div
-        className={`flex gap-2 mb-2 items-center hover:bg-neutral transition-all duration-100 rounded p-2 ${
+        className={`flex gap-2 mb-2 items-center hover:bg-base-300 transition-all duration-100 rounded p-2 ${
           isClickable ? "cursor-pointer" : ""
         } relative ${
-          isSelected ? "bg-neutral" : hasNewMessage ? "bg-green-900" : ""
+          isSelected ? "bg-base-300" : hasNewMessage ? "bg-green-900" : ""
         }`}
         onClick={
           isClickable ? () => setSelectedConversation(conversation) : undefined
