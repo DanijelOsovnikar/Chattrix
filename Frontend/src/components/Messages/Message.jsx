@@ -210,7 +210,7 @@ const Message = ({ message }) => {
             }
             
             .header-title {
-              font-size: 14px;
+              font-size: 16px;
               font-weight: bold;
               margin-bottom: 8px;
               color: #000;
@@ -250,7 +250,7 @@ const Message = ({ message }) => {
               padding: 6px 8px;
               border-radius: 6px 6px 0 0;
               font-weight: bold;
-              font-size: 11px;
+              font-size: 14px;
               color: #000;
               border: 1px solid #ccc;
               border-bottom: 2px solid #333;
@@ -272,17 +272,20 @@ const Message = ({ message }) => {
               font-weight: 600;
               color: #555;
               margin-right: 8px;
+              font-size: 16px;
             }
             
             .item-value {
               color: #333;
               word-break: break-word;
+              font-size: 16px;
             }
             
             .status-badges {
               display: flex;
               gap: 4px;
               margin-top: 4px;
+              font-size: 14px;
             }
             
             .badge {
