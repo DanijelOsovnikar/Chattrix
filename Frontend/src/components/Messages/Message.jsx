@@ -283,7 +283,7 @@ const Message = ({ message }) => {
             
             .status-badges {
               display: flex;
-              gap: 4px;
+              gap: 12px;
               margin-top: 4px;
               font-size: 14px;
             }
@@ -291,7 +291,7 @@ const Message = ({ message }) => {
             .badge {
               padding: 2px 6px;
               border-radius: 3px;
-              font-size: 9px;
+              font-size: 14px;
               font-weight: bold;
               text-transform: uppercase;
             }
@@ -346,11 +346,13 @@ const Message = ({ message }) => {
             .footer-label {
               font-weight: 600;
               color: #555;
+              font-size: 14px;
             }
             
             .footer-value {
               color: #333;
               font-weight: 500;
+              font-size: 16px;
             }
             
             .title {
