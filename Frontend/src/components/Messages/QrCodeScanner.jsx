@@ -49,7 +49,24 @@ const QrCodeScanner = () => {
 
   return (
     <div className="scannerD">
-      <Scanner onScan={scan} />
+      <Scanner
+        onScan={scan}
+        formats={[
+          "qr_code",
+          "ean_13",
+          "ean_8",
+          "code_128",
+          "code_39",
+          "code_93",
+          "codabar",
+          "itf",
+          "upc_a",
+          "upc_e",
+          "data_matrix",
+          "pdf417",
+          "aztec",
+        ]}
+      />
     </div>
   );
 };

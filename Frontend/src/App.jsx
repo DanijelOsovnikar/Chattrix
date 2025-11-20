@@ -10,6 +10,7 @@ import usePushNotifications from "./context/hooks/usePushNotifications";
 import useListenItemStatus from "./context/hooks/useListenItemStatus";
 import QrCodeScanner from "./components/Messages/QrCodeScanner";
 import { IoClose } from "react-icons/io5";
+import { createPortal } from "react-dom";
 
 function App() {
   const { authUser } = useAuthContext();
@@ -96,17 +97,21 @@ function App() {
           }
         />
       </Routes>
-      {qrCode ? <QrCodeScanner /> : null}
-      {qrCodeName ? <QrCodeScanner /> : null}
-      {qrCodeKupac ? <QrCodeScanner /> : null}
       {qrCode || qrCodeName || qrCodeKupac ? (
-        <div className="overlay"></div>
+        <>
+          <div className="overlay"></div>
+          {qrCode ? <QrCodeScanner /> : null}
+          {qrCodeName ? <QrCodeScanner /> : null}
+          {qrCodeKupac ? <QrCodeScanner /> : null}
+        </>
       ) : null}
-      {qrCode || qrCodeName || qrCodeKupac ? (
-        <div className="close" onClick={closeHandler}>
-          <IoClose />
-        </div>
-      ) : null}
+      {(qrCode || qrCodeName || qrCodeKupac) &&
+        createPortal(
+          <div className="close" onClick={closeHandler}>
+            <IoClose />
+          </div>,
+          document.body
+        )}
       <Toaster />
     </div>
   );
