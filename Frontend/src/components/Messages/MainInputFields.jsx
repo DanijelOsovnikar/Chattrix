@@ -18,6 +18,8 @@ const MainInputFields = ({
     setActiveScannerIndex,
     scannerResult,
     scannerResultName,
+    setScannerResult,
+    setScannerResultName,
   } = useConversations();
 
   // Watch the current field values
@@ -29,9 +31,13 @@ const MainInputFields = ({
     if (activeScannerIndex === index) {
       if (scannerResult && scannerResult !== currentEan) {
         setValue(`messages.${index}.ean`, scannerResult);
+        // Clear scanner result after applying to prevent re-triggering
+        setScannerResult("");
       }
       if (scannerResultName && scannerResultName !== currentNaziv) {
         setValue(`messages.${index}.naziv`, scannerResultName);
+        // Clear scanner result after applying to prevent re-triggering
+        setScannerResultName("");
       }
     }
   }, [
@@ -42,6 +48,8 @@ const MainInputFields = ({
     currentEan,
     currentNaziv,
     setValue,
+    setScannerResult,
+    setScannerResultName,
   ]);
 
   const handleQrCodeClick = () => {
