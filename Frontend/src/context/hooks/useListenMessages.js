@@ -26,9 +26,18 @@ const useListenMessages = () => {
 
       try {
         const sound = new Audio(notificationSound);
-        await sound.play();
-      } catch {
-        // Sound play failed, continue silently
+        sound.volume = 1.0;
+        const playPromise = sound.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((error) => {
+            console.log(
+              "Sound play failed (user interaction required):",
+              error.message
+            );
+          });
+        }
+      } catch (error) {
+        console.log("Sound initialization failed:", error.message);
       }
 
       const senderId =

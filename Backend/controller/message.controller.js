@@ -216,21 +216,23 @@ export const sendMessage = async (req, res) => {
 
         // Send real-time notification to employee
         const userSocketMap = getUserSocketMap();
-        const employeeSocketId = userSocketMap[employee._id.toString()];
+        const employeeSockets = userSocketMap[employee._id.toString()];
 
-        if (employeeSocketId) {
-          io.to(employeeSocketId).emit("newMessage", {
-            ...responseMessage.toObject(),
-            senderId: {
-              _id: sender._id,
-              fullName: sender.fullName,
-              userName: sender.userName,
-            },
-            receiverId: {
-              _id: employee._id,
-              fullName: employee.fullName,
-              userName: employee.userName,
-            },
+        if (employeeSockets && employeeSockets.length > 0) {
+          employeeSockets.forEach((socketInfo) => {
+            io.to(socketInfo.socketId).emit("newMessage", {
+              ...responseMessage.toObject(),
+              senderId: {
+                _id: sender._id,
+                fullName: sender.fullName,
+                userName: sender.userName,
+              },
+              receiverId: {
+                _id: employee._id,
+                fullName: employee.fullName,
+                userName: employee.userName,
+              },
+            });
           });
         }
 
@@ -418,7 +420,7 @@ export const sendMessage = async (req, res) => {
 
         // Emit socket event to warehouseman (ALWAYS emit - no preference check for warehouse requests)
         const userSocketMap = getUserSocketMap();
-        const warehousemanSockets = userSocketMap[warehouseman._id];
+        const warehousemanSockets = userSocketMap[warehouseman._id.toString()];
         if (warehousemanSockets && warehousemanSockets.length > 0) {
           warehousemanSockets.forEach((socketInfo) => {
             // console.log(
@@ -486,20 +488,16 @@ export const sendMessage = async (req, res) => {
 
       // Emit socket event to warehouse user (for employees viewing warehouse conversation)
       const userSocketMap = getUserSocketMap();
-      const warehouseSockets = userSocketMap[receiver._id];
+      const warehouseSockets = userSocketMap[receiver._id.toString()];
       if (warehouseSockets && warehouseSockets.length > 0) {
         warehouseSockets.forEach((socketInfo) => {
           io.to(socketInfo.socketId).emit("newMessage", populatedMessage);
         });
       }
 
-      // Emit socket event to SENDER (employee) so they see their own message immediately
-      const senderSockets = userSocketMap[senderId];
-      if (senderSockets && senderSockets.length > 0) {
-        senderSockets.forEach((socketInfo) => {
-          io.to(socketInfo.socketId).emit("newMessage", populatedMessage);
-        });
-      }
+      // Note: Do NOT emit to sender here - they will receive the message through
+      // the response and add it to their conversation. The socket "newMessage" event
+      // is for OTHER users to be notified, not the sender.
 
       return res.status(201).json({ message: populatedMessage });
     }
@@ -673,7 +671,7 @@ export const checkedMessage = async (req, res) => {
         const userSocketMap = getUserSocketMap();
         // console.log("🌐 Current user socket map:", Object.keys(userSocketMap));
 
-        const senderSockets = userSocketMap[message.senderId._id];
+        const senderSockets = userSocketMap[message.senderId._id.toString()];
         // console.log("📱 Sender sockets:", senderSockets);
 
         if (senderSockets && senderSockets.length > 0) {
@@ -746,7 +744,7 @@ export const checkedMessage = async (req, res) => {
     const userSocketMap = getUserSocketMap();
 
     warehousemen.forEach((warehouseman) => {
-      const warehousemanSockets = userSocketMap[warehouseman._id];
+      const warehousemanSockets = userSocketMap[warehouseman._id.toString()];
       if (warehousemanSockets && warehousemanSockets.length > 0) {
         warehousemanSockets.forEach((socketInfo) => {
           io.to(socketInfo.socketId).emit("messageStatusSync", {
@@ -809,7 +807,7 @@ export const uncheckMessage = async (req, res) => {
 
       if (wantsToastNotifications) {
         const userSocketMap = getUserSocketMap();
-        const senderSockets = userSocketMap[message.senderId._id];
+        const senderSockets = userSocketMap[message.senderId._id.toString()];
         if (senderSockets && senderSockets.length > 0) {
           senderSockets.forEach((socketInfo) => {
             io.to(socketInfo.socketId).emit("itemNotReady", {
@@ -870,7 +868,7 @@ export const uncheckMessage = async (req, res) => {
     const userSocketMap = getUserSocketMap();
 
     warehousemen.forEach((warehouseman) => {
-      const warehousemanSockets = userSocketMap[warehouseman._id];
+      const warehousemanSockets = userSocketMap[warehouseman._id.toString()];
       if (warehousemanSockets && warehousemanSockets.length > 0) {
         warehousemanSockets.forEach((socketInfo) => {
           io.to(socketInfo.socketId).emit("messageStatusSync", {
