@@ -29,6 +29,20 @@ export const useSubscribe = () => {
       throw new Error("Notification permission was not granted");
     }
 
+    // Play a silent sound to enable audio playback (bypasses autoplay restrictions)
+    try {
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
+      const buffer = audioContext.createBuffer(1, 1, 22050);
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioContext.destination);
+      source.start();
+      await audioContext.resume();
+    } catch (audioError) {
+      console.log("Audio context initialization failed:", audioError);
+    }
+
     const registration = await navigator.serviceWorker.ready;
     if (!registration.pushManager) {
       throw new Error("Push manager is unavailable");
